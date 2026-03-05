@@ -1,3 +1,5 @@
+/** @jsxRuntime classic */
+/** @jsx React.createElement */
 import React, { useState, useMemo, useEffect, useCallback, useRef, createContext, useContext } from "react";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, LineChart, Line, CartesianGrid } from "recharts";
 
@@ -2809,8 +2811,6 @@ function ModalCusto({T,obras,bancos,cats,inputStyle,labelStyle,btnPrimary,onSave
   const u = k => v => setF(p=>({...p,[k]:v}));
   const subs = f.categoria ? (cats.find(c=>c.nome===f.categoria)?.subs||[]) : [];
   const si = {...inputStyle};
-  const S = ({lbl,k,opts}) => (<FR><label style={labelStyle}>{lbl}</label><select value={f[k]} onChange={e=>u(k)(e.target.value)} style={si}><option value="">-- selecione --</option>{opts.map(o=><option key={o}>{o}</option>)}</select></FR>);
-  const I = ({lbl,k,type="text",ph=""}) => (<FR><label style={labelStyle}>{lbl}</label><input type={type} value={f[k]} onChange={e=>u(k)(e.target.value)} placeholder={ph} style={si}/></FR>);
   return (<>
     <MH title={isEdit ? "✏️ Editar Lançamento" : "💸 Lançar Custo"} onClose={onClose} T={T}/>
     {isEdit && (
@@ -2819,14 +2819,14 @@ function ModalCusto({T,obras,bancos,cats,inputStyle,labelStyle,btnPrimary,onSave
       </div>
     )}
     <CurrencyInput label="Valor (R$)" required value={f.valor} onChange={v=>u("valor")(v)} inputStyle={inputStyle} labelStyle={labelStyle} T={T}/>
-    <G2><S lbl="Obra *" k="obra" opts={obras.map(o=>o.nome)}/><I lbl="Data *" k="data" type="date"/></G2>
-    <I lbl="Descrição / Observação" k="obs" ph="Ex: COMPRA DE CIMENTO"/>
+    <G2><FR><label style={labelStyle}>Obra *</label><select value={f.obra} onChange={e=>{u("obra")(e.target.value)}} style={si}><option value="">-- selecione --</option>{obras.map(o=><option key={o.id||o.nome}>{o.nome}</option>)}</select></FR><FR><label style={labelStyle}>Data *</label><input type="date" value={f.data} onChange={e=>u("data")(e.target.value)} style={si}/></FR></G2>
+    <FR><label style={labelStyle}>Descrição / Observação</label><input type="text" value={f.obs||""} onChange={e=>u("obs")(e.target.value)} placeholder="Ex: COMPRA DE CIMENTO" style={si}/></FR>
     <G2>
       <FR><label style={labelStyle}>Categoria *</label><select value={f.categoria} onChange={e=>{u("categoria")(e.target.value);u("subcategoria")("");}} style={si}><option value="">-- selecione --</option>{cats.map(c=><option key={c.id}>{c.nome}</option>)}</select></FR>
       <S lbl="Subcategoria *" k="subcategoria" opts={subs}/>
     </G2>
-    <G2><S lbl="Tipo de Custo" k="tipo" opts={TIPOS_CUSTO}/><S lbl="Natureza" k="natureza" opts={NATUREZAS}/></G2>
-    <G2><S lbl="Pago por" k="pagador" opts={["RBIM","JF"]}/><S lbl="Banco de Saída" k="banco" opts={bancos.map(b=>b.nome)}/></G2>
+    <G2><FR><label style={labelStyle}>Tipo de Custo</label><select value={f.tipo} onChange={e=>u("tipo")(e.target.value)} style={si}>{TIPOS_CUSTO.map(t=><option key={t}>{t}</option>)}</select></FR><FR><label style={labelStyle}>Natureza</label><select value={f.natureza} onChange={e=>u("natureza")(e.target.value)} style={si}>{NATUREZAS.map(n=><option key={n}>{n}</option>)}</select></FR></G2>
+    <G2><FR><label style={labelStyle}>Pago por</label><select value={f.pagador} onChange={e=>u("pagador")(e.target.value)} style={si}>{["RBIM","JF"].map(x=><option key={x}>{x}</option>)}</select></FR><FR><label style={labelStyle}>Banco de Saída</label><select value={f.banco} onChange={e=>u("banco")(e.target.value)} style={si}><option value="">-- selecione --</option>{bancos.map(b=><option key={b.id||b.nome}>{b.nome}</option>)}</select></FR></G2>
     <FornecedorInput
       value={f.fornecedor}
       onChange={v=>u("fornecedor")(v)}
