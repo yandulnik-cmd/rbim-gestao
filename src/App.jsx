@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect, useCallback, createContext, useContext } from "react";
+import React, { useState, useMemo, useEffect, useCallback, useRef, createContext, useContext } from "react";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, LineChart, Line, CartesianGrid } from "recharts";
 
 // ─── SUPABASE CLIENT ─────────────────────────────────────────────────────────
@@ -1248,8 +1248,8 @@ function useFornecedores(seedCustos) {
 function FornecedorInput({ value, onChange, fornecedores, inputStyle, labelStyle, T }) {
   const [open, setOpen]         = useState(false);
   const [cursor, setCursor]     = useState(-1);
-  const inputRef                = React.useRef(null);
-  const listRef                 = React.useRef(null);
+  const inputRef                = useRef(null);
+  const listRef                 = useRef(null);
 
   const suggestions = value.trim().length === 0
     ? []
