@@ -410,6 +410,13 @@ const fmt = v => (Number(v)||0).toLocaleString("pt-BR",{style:"currency",currenc
 const fmtDec = fmt; // alias mantido por compatibilidade
 const todayStr = () => new Date().toISOString().split("T")[0];
 const getMes = d => { if(!d) return ""; const [y,m]=d.split("-"); return `${m}/${y.slice(2)}`; };
+/** Ordena strings "MM/AA" cronologicamente */
+const sortMes = (a,b) => {
+  const [ma,ya] = a.split("/"); const [mb,yb] = b.split("/");
+  const na = (parseInt(ya)||0)*100 + (parseInt(ma)||0);
+  const nb = (parseInt(yb)||0)*100 + (parseInt(mb)||0);
+  return na - nb;
+};
 let _nextId = 200;
 const nid = () => ++_nextId;
 
@@ -725,7 +732,7 @@ export default function App() {
   };
 
   const obrasNames = ["TODAS",...obras.map(o=>o.nome)];
-  const mesesList = ["TODOS",...Array.from(new Set(custos.map(d=>getMes(d.data)).filter(Boolean))).sort()];
+  const mesesList = ["TODOS",...Array.from(new Set(custos.map(d=>getMes(d.data)).filter(Boolean))).sort(sortMes)];
   const catsNames = ["TODAS",...cats.map(c=>c.nome)];
 
   // ── smart features state ──────────────────────────────────────────────────
@@ -1158,22 +1165,24 @@ export default function App() {
       {/* ════ VISÃO GERAL ════════════════════════════════════════════════════ */}
       {tab==="visao" && (
         <VisaoGeral
-          T={T}
-          custos={filtCustos}
+          T={T} dark={dark}
+          obras={obrasMetrica}
+          custos={custos}
+          receitas={receitas}
+          saldoBancos={saldoBancos}
           totalReceitas={totalReceitas}
           totalCustos={totalCustos}
           totalApagar={totalApagar}
           apagarPend={apagarPend}
-          fObra={fObra} setFObra={setFObra}
-          fMes={fMes}  setFMes={setFMes}
-          fCat={fCat}  setFCat={setFCat}
-          fSearch={fSearch} setFSearch={setFSearch}
-          obrasList={obrasNames}
-          mesesList={mesesList}
-          catsNames={catsNames}
+          vencidas={vencidas}
+          vencendo={vencendo}
+          surface={surface}
           inputStyle={inputStyle}
           labelStyle={labelStyle}
           btnGhost={btnGhost}
+          btnPrimary={btnPrimary}
+          openModal={openModal}
+          setTab={setTab}
         />
       )}
 
@@ -2622,7 +2631,7 @@ function DashboardFinanceiro({ T, receitas, setReceitas, custos, saldoBancos,
       ...receitas.map(r => getMes(r.data)),
       ...custos.map(c => getMes(c.data)),
     ].filter(Boolean);
-    return ["TODOS", ...Array.from(new Set(todos)).sort()];
+    return ["TODOS", ...Array.from(new Set(todos)).sort(sortMes)];
   }, [receitas, custos]);
 
   // lista de bancos disponíveis (derivada de saldoBancos)
@@ -2652,7 +2661,7 @@ function DashboardFinanceiro({ T, receitas, setReceitas, custos, saldoBancos,
     const meses = Array.from(new Set([
       ...receitas.map(r => getMes(r.data)),
       ...custos.map(c => getMes(c.data)),
-    ].filter(Boolean))).sort();
+    ].filter(Boolean))).sort(sortMes);
 
     return meses.map(mes => ({
       mes,
@@ -3026,7 +3035,7 @@ function GraficoEvolucaoMensal({ T, data }) {
   const porMes = useMemo(() => {
     const m = {};
     data.forEach(d => { const k = getMes(d.data) || "s/mês"; m[k] = (m[k] || 0) + d.valor; });
-    return Object.keys(m).sort().map(k => ({ name: k, value: m[k] }));
+    return Object.keys(m).sort(sortMes).map(k => ({ name: k, value: m[k] }));
   }, [data]);
 
   return (
@@ -3082,138 +3091,226 @@ function TabelaRecentes({ T, data }) {
   );
 }
 
-// ── VisaoGeral (componente pai — gerencia todo o estado dos gráficos) ─────────
-function VisaoGeral({ T, custos, totalReceitas, totalCustos, totalApagar, apagarPend,
-  fObra, setFObra, fMes, setFMes, fCat, setFCat, fSearch, setFSearch,
-  obrasList, mesesList, catsNames, inputStyle, labelStyle, btnGhost }) {
+// ── VisaoGeral — Dashboard principal redesenhado ─────────────────────────────
+function VisaoGeral({ T, dark, obras, custos, receitas, saldoBancos,
+  totalReceitas, totalCustos, totalApagar, apagarPend, vencidas, vencendo,
+  surface, inputStyle, labelStyle, btnGhost, btnPrimary, openModal, setTab }) {
 
-  // ── estado centralizado do drill-down ──
-  const { selectedCat, selectCat, reset: resetCat } = useDrillDown();
+  const resultado = totalReceitas - totalCustos;
+  const caixaTotal = saldoBancos.reduce((s,b)=>s+(b.saldoAtual||0),0);
 
-  // reset categoria ao trocar filtro de obra
-  const handleObraChange = (v) => { setFObra(v); resetCat(); };
+  // últimos 5 lançamentos
+  const ultimos = useMemo(()=>[...custos].sort((a,b)=>new Date(b.data)-new Date(a.data)).slice(0,5),[custos]);
 
-  const modoObra = fObra !== "TODAS"; // CENÁRIO B
+  // gastos por obra (top 5)
+  const porObra = useMemo(()=>{
+    const m={};
+    custos.forEach(d=>{m[d.obra]=(m[d.obra]||0)+d.valor;});
+    return Object.entries(m).map(([name,value])=>({name,value})).sort((a,b)=>b.value-a.value).slice(0,6);
+  },[custos]);
 
-  // ── dados derivados ──
-  const porObra   = useMemo(() => groupSum(custos, d => d.obra), [custos]);
-  const porCat    = useMemo(() => groupSum(custos, d => d.categoria), [custos]);
-  const porSub    = useMemo(() => {
-    if (!selectedCat) return [];
-    return groupSum(custos.filter(d => d.categoria === selectedCat), d => d.subcategoria);
-  }, [custos, selectedCat]);
+  // evolução mensal
+  const fluxoMensal = useMemo(()=>{
+    const meses = Array.from(new Set([
+      ...receitas.map(r=>getMes(r.data)),
+      ...custos.map(c=>getMes(c.data)),
+    ].filter(Boolean))).sort(sortMes);
+    return meses.map(mes=>({
+      mes,
+      entradas: receitas.filter(r=>getMes(r.data)===mes).reduce((s,r)=>s+r.valor,0),
+      saidas: custos.filter(c=>getMes(c.data)===mes).reduce((s,c)=>s+c.valor,0),
+    }));
+  },[receitas,custos]);
 
-  // linhas da tabela de drill-down (usadas só quando categoria selecionada)
-  const rowsDrill = useMemo(() => {
-    if (!selectedCat) return [];
-    return [...custos.filter(d => d.categoria === selectedCat)]
-      .sort((a, b) => new Date(b.data) - new Date(a.data))
-      .slice(0, 10);
-  }, [custos, selectedCat]);
+  const tooltipStyle = { background: dark?"rgba(10,16,28,0.96)":"rgba(255,255,255,0.97)", backdropFilter:"blur(16px)", border:`1px solid ${T.border2}`, borderRadius:10, color:T.text, fontSize:12, boxShadow:T.shadow };
 
-  const surface = (extra = {}) => ({ background: T.surface, border: `1px solid ${T.border}`, borderRadius: 12, padding: "18px 20px", ...extra });
-  const tooltipStyle = { background: T.surface2, border: `1px solid ${T.border2}`, borderRadius: 8, color: T.text, fontSize: 11 };
-
-  return (<>
-    {/* KPIs */}
-    <div className="rbim-kpi-row" style={{ display: "flex", gap: 10, marginBottom: 14, flexWrap: "wrap" }}>
-      {[
-        { l: "Total Receitas",   v: fmt(totalReceitas),                c: T.success, icon: "↑" },
-        { l: "Total Custos",     v: fmt(totalCustos),                  c: T.danger,  icon: "↓" },
-        { l: "Resultado Geral",  v: fmt(totalReceitas - totalCustos),  c: totalReceitas - totalCustos >= 0 ? T.success : T.danger, icon: "=" },
-        { l: "A Pagar Pendente", v: fmt(totalApagar), sub: `${apagarPend.length} contas`, c: T.accent2, icon: "◷" },
-      ].map(({ l, v, c, sub, icon }) => (
-        <div key={l} style={{ ...surface({ padding: "20px 24px" }), flex: 1, minWidth: 150, position:"relative", overflow:"hidden" }}>
-          <div style={{position:"absolute",top:16,right:16,fontSize:20,opacity:0.12,color:c,fontWeight:900}}>{icon}</div>
-          <div style={{ fontSize: 10, color: T.text3, textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: 8, fontWeight:600 }}>{l}</div>
-          <div style={{ fontSize: 22, fontWeight: 700, color: c, fontFamily: T.fontDisplay, letterSpacing:"-0.02em", lineHeight:1.1 }}>{v}</div>
-          {sub && <div style={{ fontSize: 10, color: T.text3, marginTop: 6, fontWeight:500 }}>{sub}</div>}
+  return (
+    <div>
+      {/* ── ROW 1: KPIs principais ── */}
+      <div className="rbim-kpi-row" style={{display:"flex",gap:12,marginBottom:16,flexWrap:"wrap"}}>
+        {/* Caixa */}
+        <div style={{...surface({padding:"20px 24px"}),flex:1.2,minWidth:180,borderLeft:`3px solid ${caixaTotal>=0?T.success:T.danger}`,position:"relative",overflow:"hidden"}}>
+          <div style={{position:"absolute",top:14,right:18,fontSize:28,opacity:0.07,color:T.text,fontWeight:900}}>$</div>
+          <div style={{fontSize:9,color:T.text3,textTransform:"uppercase",letterSpacing:"0.12em",fontWeight:600,marginBottom:8}}>Caixa Disponível</div>
+          <div style={{fontSize:26,fontWeight:700,color:caixaTotal>=0?T.success:T.danger,fontFamily:T.fontDisplay,letterSpacing:"-0.03em",lineHeight:1}}>{fmt(caixaTotal)}</div>
+          <div style={{fontSize:10,color:T.text3,marginTop:8}}>{saldoBancos.length} conta{saldoBancos.length!==1?"s":""}</div>
         </div>
-      ))}
-    </div>
 
-    {/* Filtros */}
-    <div className="rbim-filter-row" style={{ ...surface({ padding: "16px 20px", marginBottom: 16 }), display: "flex", gap: 12, flexWrap: "wrap", alignItems: "flex-end" }}>
-      {[["Obra", fObra, handleObraChange, obrasList], ["Mês", fMes, setFMes, mesesList], ["Categoria", fCat, setFCat, catsNames]].map(([lbl, val, set, opts]) => (
-        <div key={lbl} style={{ display: "flex", flexDirection: "column", gap: 3 }}>
-          <label style={labelStyle}>{lbl}</label>
-          <select value={val} onChange={e => set(e.target.value)} style={{ ...inputStyle, width: 140 }}>
-            {opts.map(o => <option key={o}>{o}</option>)}
-          </select>
+        {/* Receitas */}
+        <div style={{...surface({padding:"20px 24px"}),flex:1,minWidth:140,position:"relative",overflow:"hidden"}}>
+          <div style={{position:"absolute",top:14,right:18,fontSize:22,opacity:0.08,color:T.success}}>↑</div>
+          <div style={{fontSize:9,color:T.text3,textTransform:"uppercase",letterSpacing:"0.12em",fontWeight:600,marginBottom:8}}>Receitas</div>
+          <div style={{fontSize:22,fontWeight:700,color:T.success,fontFamily:T.fontDisplay,letterSpacing:"-0.02em",lineHeight:1}}>{fmt(totalReceitas)}</div>
+          <div style={{fontSize:10,color:T.text3,marginTop:8}}>{receitas.length} medições</div>
         </div>
-      ))}
-      <div style={{ display: "flex", flexDirection: "column", gap: 3, flex: 1, minWidth: 160 }}>
-        <label style={labelStyle}>Buscar</label>
-        <input value={fSearch} onChange={e => setFSearch(e.target.value)} placeholder="Descrição ou fornecedor..." style={inputStyle} />
-      </div>
-      <button onClick={() => { setFObra("TODAS"); setFMes("TODOS"); setFCat("TODAS"); setFSearch(""); resetCat(); }} style={{ ...btnGhost, alignSelf: "flex-end" }}>✕ Limpar</button>
-    </div>
 
-    {/* ── CENÁRIO A: todas as obras ── */}
-    {!modoObra && (
-      <div className="rbim-grid2-charts" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14, marginBottom: 14 }}>
-        <GraficoGastosPorObra T={T} data={porObra} />
-        <GraficoCategorias T={T} porCat={porCat} porSub={porSub} selectedCat={selectedCat} onSelectCat={selectCat} onReset={resetCat} />
-      </div>
-    )}
+        {/* Custos */}
+        <div style={{...surface({padding:"20px 24px"}),flex:1,minWidth:140,position:"relative",overflow:"hidden"}}>
+          <div style={{position:"absolute",top:14,right:18,fontSize:22,opacity:0.08,color:T.danger}}>↓</div>
+          <div style={{fontSize:9,color:T.text3,textTransform:"uppercase",letterSpacing:"0.12em",fontWeight:600,marginBottom:8}}>Custos</div>
+          <div style={{fontSize:22,fontWeight:700,color:T.danger,fontFamily:T.fontDisplay,letterSpacing:"-0.02em",lineHeight:1}}>{fmt(totalCustos)}</div>
+          <div style={{fontSize:10,color:T.text3,marginTop:8}}>{custos.length} lançamentos</div>
+        </div>
 
-    {/* ── CENÁRIO B: obra específica ── */}
-    {modoObra && (
-      <div className="rbim-grid2-charts" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14, marginBottom: 14 }}>
-        <GraficoCategorias T={T} porCat={porCat} porSub={porSub} selectedCat={selectedCat} onSelectCat={selectCat} onReset={resetCat} />
-        {/* subcategorias: gráfico de barras ou mensagem inicial */}
-        <div style={{ ...surface(), display: "flex", flexDirection: "column" }}>
-          {selectedCat ? (<>
-            <div style={{ fontWeight: 700, fontSize: 14, marginBottom: 14, fontFamily: T.fontDisplay||"inherit", letterSpacing:"-0.01em" }}>
-              📊 Subcategorias — <span style={{ color: T.accent }}>{selectedCat}</span>
+        {/* Resultado */}
+        <div style={{...surface({padding:"20px 24px"}),flex:1,minWidth:140,position:"relative",overflow:"hidden"}}>
+          <div style={{position:"absolute",top:14,right:18,fontSize:22,opacity:0.08,color:resultado>=0?T.success:T.danger}}>=</div>
+          <div style={{fontSize:9,color:T.text3,textTransform:"uppercase",letterSpacing:"0.12em",fontWeight:600,marginBottom:8}}>Resultado</div>
+          <div style={{fontSize:22,fontWeight:700,color:resultado>=0?T.success:T.danger,fontFamily:T.fontDisplay,letterSpacing:"-0.02em",lineHeight:1}}>{fmt(resultado)}</div>
+          <div style={{fontSize:10,color:resultado>=0?T.success:T.danger,marginTop:8,fontWeight:500}}>{resultado>=0?"Positivo":"Negativo"}</div>
+        </div>
+      </div>
+
+      {/* ── ROW 2: Alertas A Pagar + Gráfico evolução ── */}
+      <div className="rbim-grid2-charts" style={{display:"grid",gridTemplateColumns:"1fr 1.6fr",gap:14,marginBottom:16}}>
+
+        {/* A Pagar / Alertas */}
+        <div style={{...surface({padding:0,overflow:"hidden"}),display:"flex",flexDirection:"column"}}>
+          <div style={{padding:"16px 20px",borderBottom:`1px solid ${T.border}`,display:"flex",justifyContent:"space-between",alignItems:"center"}}>
+            <div style={{fontWeight:700,fontSize:14,fontFamily:T.fontDisplay,letterSpacing:"-0.01em"}}>A Pagar</div>
+            <button onClick={()=>setTab("apagar_aba")} style={{...btnGhost,fontSize:10,padding:"4px 12px"}}>Ver tudo →</button>
+          </div>
+          <div style={{padding:"16px 20px",flex:1}}>
+            {/* Resumo */}
+            <div style={{display:"flex",gap:10,marginBottom:14}}>
+              <div style={{flex:1,background:T.danger+"10",borderRadius:10,padding:"10px 14px",textAlign:"center"}}>
+                <div style={{fontSize:18,fontWeight:700,color:T.danger,fontFamily:T.fontDisplay}}>{fmt(totalApagar)}</div>
+                <div style={{fontSize:9,color:T.text3,marginTop:3,textTransform:"uppercase",letterSpacing:"0.08em"}}>{apagarPend.length} pendentes</div>
+              </div>
             </div>
-            <ResponsiveContainer width="100%" height={200}>
-              <BarChart data={porSub} layout="vertical" margin={{ left: 10, right: 16 }}>
-                <XAxis type="number" tick={{ fill: T.text3, fontSize: 10 }} tickFormatter={v => `${(v / 1000).toFixed(0)}k`} />
-                <YAxis type="category" dataKey="name" tick={{ fill: T.text2, fontSize: 10 }} width={100} />
-                <Tooltip formatter={v => fmt(v)} contentStyle={tooltipStyle} />
-                <Bar dataKey="value" radius={[0, 6, 6, 0]}>
-                  {porSub.map((_, i) => <Cell key={i} fill={PALETTE[(i + 4) % PALETTE.length]} />)}
-                </Bar>
+
+            {/* Alertas */}
+            {vencidas.length > 0 && (
+              <div style={{background:T.danger+"10",border:`1px solid ${T.danger}22`,borderRadius:8,padding:"8px 12px",marginBottom:8,fontSize:11,color:T.danger,fontWeight:600,display:"flex",alignItems:"center",gap:6}}>
+                <span>⚠</span> {vencidas.length} vencida{vencidas.length>1?"s":""} — {fmt(vencidas.reduce((s,a)=>s+a.valor,0))}
+              </div>
+            )}
+            {vencendo.length > 0 && (
+              <div style={{background:T.accent2+"10",border:`1px solid ${T.accent2}22`,borderRadius:8,padding:"8px 12px",marginBottom:8,fontSize:11,color:T.accent2,fontWeight:600,display:"flex",alignItems:"center",gap:6}}>
+                <span>◷</span> {vencendo.length} vence{vencendo.length>1?"m":""} em 7 dias — {fmt(vencendo.reduce((s,a)=>s+a.valor,0))}
+              </div>
+            )}
+
+            {/* Próximas contas */}
+            <div style={{fontSize:10,color:T.text3,fontWeight:600,textTransform:"uppercase",letterSpacing:"0.08em",marginBottom:6,marginTop:4}}>Próximas</div>
+            {apagarPend.sort((a,b)=>new Date(a.vencimento)-new Date(b.vencimento)).slice(0,4).map(item=>{
+              const diff=Math.ceil((new Date(item.vencimento)-new Date())/86400000);
+              const isV=diff<0;
+              return (
+                <div key={item.id} style={{display:"flex",justifyContent:"space-between",alignItems:"center",padding:"6px 0",borderBottom:`1px solid ${T.border}`,gap:8}}>
+                  <div style={{flex:1,minWidth:0}}>
+                    <div style={{fontSize:11,fontWeight:600,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{item.descricao}</div>
+                    <div style={{fontSize:9,color:T.text3}}>{item.obra} · {item.vencimento}</div>
+                  </div>
+                  <div style={{fontSize:11,fontWeight:700,color:isV?T.danger:T.text,whiteSpace:"nowrap"}}>{fmt(item.valor)}</div>
+                </div>
+              );
+            })}
+            {apagarPend.length===0 && <div style={{fontSize:11,color:T.text3,textAlign:"center",padding:"20px 0"}}>Nenhuma conta pendente</div>}
+          </div>
+        </div>
+
+        {/* Gráfico evolução mensal */}
+        <div style={surface()}>
+          <div style={{fontWeight:700,fontSize:14,marginBottom:14,fontFamily:T.fontDisplay,letterSpacing:"-0.01em"}}>Fluxo Mensal</div>
+          {fluxoMensal.length > 0 ? (
+            <ResponsiveContainer width="100%" height={220}>
+              <BarChart data={fluxoMensal} margin={{left:0,right:8}}>
+                <CartesianGrid strokeDasharray="3 3" stroke={T.border} />
+                <XAxis dataKey="mes" tick={{fill:T.text3,fontSize:10}} />
+                <YAxis tick={{fill:T.text3,fontSize:10}} tickFormatter={v=>`${(v/1000).toFixed(0)}k`} />
+                <Tooltip formatter={v=>fmt(v)} contentStyle={tooltipStyle} />
+                <Bar dataKey="entradas" name="Entradas" fill={T.success} radius={[4,4,0,0]} />
+                <Bar dataKey="saidas" name="Saídas" fill={T.danger} radius={[4,4,0,0]} />
               </BarChart>
             </ResponsiveContainer>
-            {/* tabela drill-down */}
-            <div style={{ marginTop: 12, overflowX: "auto", flex: 1 }}>
-              <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 10 }}>
-                <thead><tr style={{ background: T.surface2 }}>
-                  {["Data", "Subcategoria", "Descrição", "Valor"].map(h => (
-                    <th key={h} style={{ padding: "6px 10px", textAlign: "left", color: T.accent, fontWeight: 700, fontSize: 9, borderBottom: `1px solid ${T.border}` }}>{h}</th>
-                  ))}
-                </tr></thead>
-                <tbody>{rowsDrill.map((d, i) => (
-                  <tr key={i} style={{ borderBottom: `1px solid ${T.border}`, background: i % 2 === 0 ? "transparent" : T.rowAlt }}>
-                    <td style={{ padding: "5px 10px", color: T.text3, whiteSpace: "nowrap" }}>{d.data}</td>
-                    <td style={{ padding: "5px 10px", color: T.accent2 }}>{d.subcategoria}</td>
-                    <td style={{ padding: "5px 10px", color: T.text2, maxWidth: 140, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{d.obs || "-"}</td>
-                    <td style={{ padding: "5px 10px", fontWeight: 800, color: T.accent, textAlign: "right", whiteSpace: "nowrap" }}>{fmt(d.valor)}</td>
-                  </tr>
-                ))}</tbody>
-              </table>
-            </div>
-          </>) : (
-            <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", flex: 1, gap: 10, color: T.text3, minHeight: 200, background:T.surface2, borderRadius:12 }}>
-              <div style={{ fontSize: 28, opacity:0.4 }}>◑</div>
-              <div style={{ fontSize: 12, textAlign: "center", lineHeight:1.6, opacity:0.6 }}>Selecione uma categoria<br />para ver o detalhamento</div>
-            </div>
+          ) : (
+            <PlaceholderGrafico T={T} label="Aguardando dados" />
           )}
         </div>
       </div>
-    )}
 
-    {/* ── Natureza do Gasto (independente do cenário) ── */}
-    <div className="rbim-grid2-charts" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14, marginBottom: 14 }}>
-      <GraficoNatureza T={T} data={custos} />
-      <GraficoEvolucaoMensal T={T} data={custos} />
+      {/* ── ROW 3: Obras resumo + Gastos por obra ── */}
+      <div className="rbim-grid2-charts" style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:14,marginBottom:16}}>
+
+        {/* Mini cards de obras */}
+        <div style={{...surface({padding:0,overflow:"hidden"})}}>
+          <div style={{padding:"16px 20px",borderBottom:`1px solid ${T.border}`,display:"flex",justifyContent:"space-between",alignItems:"center"}}>
+            <div style={{fontWeight:700,fontSize:14,fontFamily:T.fontDisplay,letterSpacing:"-0.01em"}}>Obras</div>
+            <button onClick={()=>setTab("obras")} style={{...btnGhost,fontSize:10,padding:"4px 12px"}}>Ver todas →</button>
+          </div>
+          <div style={{padding:"12px 16px",display:"flex",flexDirection:"column",gap:8,maxHeight:280,overflowY:"auto"}}>
+            {obras.map(o=>(
+              <div key={o.id} style={{display:"flex",alignItems:"center",gap:10,padding:"8px 12px",background:T.surface2,borderRadius:10,border:`1px solid ${T.border}`}}>
+                <div style={{flex:1,minWidth:0}}>
+                  <div style={{fontSize:12,fontWeight:600,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{o.nome}</div>
+                  <div style={{display:"flex",gap:8,marginTop:4,fontSize:10,color:T.text3}}>
+                    <span>Contrato: <strong style={{color:T.text2}}>{fmt(o.contrato)}</strong></span>
+                  </div>
+                </div>
+                <div style={{textAlign:"right",flexShrink:0}}>
+                  <div style={{fontSize:12,fontWeight:700,color:o.pct>80?T.danger:o.pct>50?T.accent2:T.success}}>{o.pct.toFixed(0)}%</div>
+                  <div style={{fontSize:9,color:T.text3,marginTop:2}}>{fmt(o.gasto)}</div>
+                </div>
+                {/* mini progress bar */}
+                <div style={{width:50,flexShrink:0}}>
+                  <div style={{background:T.surface,borderRadius:999,height:4,overflow:"hidden",border:`1px solid ${T.border}`}}>
+                    <div style={{height:"100%",borderRadius:999,width:`${Math.min(o.pct,100)}%`,background:o.pct>80?T.danger:o.pct>50?T.accent2:T.success,transition:"width 0.4s"}}/>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Gastos por obra - barras */}
+        <div style={surface()}>
+          <div style={{fontWeight:700,fontSize:14,marginBottom:14,fontFamily:T.fontDisplay,letterSpacing:"-0.01em"}}>Gastos por Obra</div>
+          {porObra.length > 0 ? (
+            <ResponsiveContainer width="100%" height={Math.max(180,porObra.length*34)}>
+              <BarChart data={porObra} layout="vertical" margin={{left:10,right:16}}>
+                <XAxis type="number" tick={{fill:T.text3,fontSize:10}} tickFormatter={v=>`${(v/1000).toFixed(0)}k`} />
+                <YAxis type="category" dataKey="name" tick={{fill:T.text2,fontSize:10}} width={100} />
+                <Tooltip formatter={v=>fmt(v)} contentStyle={tooltipStyle} />
+                <Bar dataKey="value" radius={[0,6,6,0]}>
+                  {porObra.map((_,i)=><Cell key={i} fill={PALETTE[i%PALETTE.length]} />)}
+                </Bar>
+              </BarChart>
+            </ResponsiveContainer>
+          ) : <PlaceholderGrafico T={T} label="Sem dados" />}
+        </div>
+      </div>
+
+      {/* ── ROW 4: Últimos lançamentos ── */}
+      <div style={{...surface({padding:0,overflow:"hidden"})}}>
+        <div style={{padding:"14px 20px",borderBottom:`1px solid ${T.border}`,display:"flex",justifyContent:"space-between",alignItems:"center"}}>
+          <div style={{fontWeight:700,fontSize:14,fontFamily:T.fontDisplay,letterSpacing:"-0.01em"}}>Últimos Lançamentos</div>
+          <button onClick={()=>setTab("custos_aba")} style={{...btnGhost,fontSize:10,padding:"4px 12px"}}>Ver todos →</button>
+        </div>
+        <div style={{overflowX:"auto"}}>
+          <table style={{width:"100%",borderCollapse:"collapse",fontSize:11}}>
+            <thead style={{background:T.surface2}}>
+              <tr>{["Data","Obra","Categoria","Descrição","Valor"].map(h=>(
+                <th key={h} style={{padding:"8px 14px",textAlign:h==="Valor"?"right":"left",color:T.text3,fontWeight:600,fontSize:9.5,borderBottom:`1px solid ${T.border}`,whiteSpace:"nowrap",letterSpacing:"0.07em",textTransform:"uppercase"}}>{h}</th>
+              ))}</tr>
+            </thead>
+            <tbody>
+              {ultimos.map((d,i)=>(
+                <tr key={d.id||i} style={{borderBottom:`1px solid ${T.border}`,background:i%2===0?"transparent":T.rowAlt}}>
+                  <td style={{padding:"8px 14px",color:T.text3,whiteSpace:"nowrap"}}>{d.data}</td>
+                  <td style={{padding:"8px 14px",fontWeight:600,whiteSpace:"nowrap"}}>{d.obra}</td>
+                  <td style={{padding:"8px 14px",color:T.accent2,fontSize:10}}>{d.categoria}</td>
+                  <td style={{padding:"8px 14px",color:T.text2,maxWidth:200,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{d.obs||"—"}</td>
+                  <td style={{padding:"8px 14px",fontWeight:700,color:T.accent,textAlign:"right",whiteSpace:"nowrap"}}>{fmt(d.valor)}</td>
+                </tr>
+              ))}
+              {ultimos.length===0 && <tr><td colSpan={5} style={{padding:"24px 14px",textAlign:"center",color:T.text3}}>Nenhum lançamento</td></tr>}
+            </tbody>
+          </table>
+        </div>
+      </div>
     </div>
-
-    {/* ── Tabela de recentes ── */}
-    <TabelaRecentes T={T} data={custos} />
-  </>);
+  );
 }
 
 // ─── CADASTROS TAB ────────────────────────────────────────────────────────────
