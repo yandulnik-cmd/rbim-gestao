@@ -81,6 +81,107 @@ if (typeof document !== "undefined" && !document.getElementById("rbim-fonts")) {
   }
 }
 
+// ── SVG Background Pattern ───────────────────────────────────────────────────
+function BgPattern({ dark }) {
+  const c1 = dark ? "rgba(91,155,255," : "rgba(45,110,231,";
+  const c2 = dark ? "rgba(180,156,255," : "rgba(109,76,224,";
+  // opacities — slightly more visible so it actually shows
+  const g = dark ? 0.06 : 0.055;   // grid fine
+  const gL = dark ? 0.09 : 0.08;  // grid large
+  const s = dark ? 0.06 : 0.06;   // structures
+  const s2 = dark ? 0.05 : 0.05;  // structures secondary
+
+  return (
+    <div style={{position:"fixed",inset:0,zIndex:0,pointerEvents:"none",overflow:"hidden"}}>
+      <svg width="100%" height="100%" xmlns="http://www.w3.org/2000/svg" style={{position:"absolute",inset:0,width:"100%",height:"100%"}}>
+        <defs>
+          <pattern id="rbim-grid-sm" width="40" height="40" patternUnits="userSpaceOnUse">
+            <path d="M 40 0 L 0 0 0 40" fill="none" stroke={c1+g+")"} strokeWidth="0.6"/>
+          </pattern>
+          <pattern id="rbim-grid-lg" width="200" height="200" patternUnits="userSpaceOnUse">
+            <path d="M 200 0 L 0 0 0 200" fill="none" stroke={c1+gL+")"} strokeWidth="1"/>
+          </pattern>
+        </defs>
+        {/* Blueprint grid */}
+        <rect width="100%" height="100%" fill="url(#rbim-grid-sm)"/>
+        <rect width="100%" height="100%" fill="url(#rbim-grid-lg)"/>
+
+        {/* Diagonal truss lines */}
+        <line x1="0" y1="35%" x2="25%" y2="0" stroke={c1+s+")"} strokeWidth="1.2"/>
+        <line x1="60%" y1="100%" x2="100%" y2="55%" stroke={c2+s2+")"} strokeWidth="1"/>
+        <line x1="15%" y1="100%" x2="75%" y2="10%" stroke={c1+(s*0.6)+")"} strokeWidth="0.7"/>
+        <line x1="80%" y1="0" x2="100%" y2="30%" stroke={c2+(s*0.5)+")"} strokeWidth="0.6"/>
+
+        {/* Isometric beam (top-right area) */}
+        <polygon points="78%,8% 82%,5.5% 86%,8% 86%,11% 82%,13.5% 78%,11%" fill="none" stroke={c1+s+")"} strokeWidth="1"/>
+        <line x1="78%" y1="8%" x2="78%" y2="11%" stroke={c1+(s*0.7)+")"} strokeWidth="0.6"/>
+        <line x1="82%" y1="5.5%" x2="82%" y2="13.5%" stroke={c1+(s*0.7)+")"} strokeWidth="0.6"/>
+        <line x1="86%" y1="8%" x2="86%" y2="11%" stroke={c1+(s*0.7)+")"} strokeWidth="0.6"/>
+
+        {/* Building silhouettes (bottom-left) */}
+        <rect x="5%" y="72%" width="5%" height="18%" rx="2" fill="none" stroke={c2+s+")"} strokeWidth="1"/>
+        <rect x="11%" y="65%" width="4%" height="25%" rx="2" fill="none" stroke={c1+s+")"} strokeWidth="1"/>
+        <rect x="16%" y="68%" width="6%" height="22%" rx="2" fill="none" stroke={c2+s2+")"} strokeWidth="0.8"/>
+        <rect x="23%" y="75%" width="3.5%" height="15%" rx="2" fill="none" stroke={c1+(s*0.7)+")"} strokeWidth="0.7"/>
+
+        {/* Crane */}
+        <line x1="13%" y1="65%" x2="13%" y2="48%" stroke={c1+s+")"} strokeWidth="1.2"/>
+        <line x1="13%" y1="48%" x2="30%" y2="48%" stroke={c1+s+")"} strokeWidth="1"/>
+        <line x1="30%" y1="48%" x2="30%" y2="54%" stroke={c1+s2+")"} strokeWidth="0.6" strokeDasharray="4,3"/>
+        <line x1="13%" y1="48%" x2="8%" y2="52%" stroke={c1+(s*0.7)+")"} strokeWidth="0.7"/>
+        <circle cx="13%" cy="48%" r="2.5" fill={c1+s+")"}/>
+        <circle cx="30%" cy="54%" r="1.5" fill={c1+s2+")"}/>
+
+        {/* Bridge/arch (bottom-center) */}
+        <path d="M 45%,88% Q 55%,76% 65%,88%" fill="none" stroke={c1+s+")"} strokeWidth="1.2"/>
+        <line x1="49%" y1="88%" x2="49%" y2="82%" stroke={c1+s2+")"} strokeWidth="0.6"/>
+        <line x1="55%" y1="88%" x2="55%" y2="78%" stroke={c1+s2+")"} strokeWidth="0.6"/>
+        <line x1="61%" y1="88%" x2="61%" y2="82%" stroke={c1+s2+")"} strokeWidth="0.6"/>
+
+        {/* Dimension line (top-center) */}
+        <line x1="38%" y1="16%" x2="58%" y2="16%" stroke={c1+s+")"} strokeWidth="0.7"/>
+        <line x1="38%" y1="14.5%" x2="38%" y2="17.5%" stroke={c1+s+")"} strokeWidth="0.7"/>
+        <line x1="58%" y1="14.5%" x2="58%" y2="17.5%" stroke={c1+s+")"} strokeWidth="0.7"/>
+        <circle cx="38%" cy="16%" r="2" fill={c1+s+")"}/>
+        <circle cx="58%" cy="16%" r="2" fill={c1+s+")"}/>
+
+        {/* Triangle truss (right area) */}
+        <polygon points="72%,30% 78%,20% 84%,30%" fill="none" stroke={c2+s+")"} strokeWidth="1"/>
+        <line x1="75%" y1="25%" x2="81%" y2="25%" stroke={c2+s2+")"} strokeWidth="0.6"/>
+
+        {/* Cross brace (mid-left) */}
+        <line x1="3%" y1="35%" x2="12%" y2="48%" stroke={c1+(s*0.5)+")"} strokeWidth="0.5"/>
+        <line x1="12%" y1="35%" x2="3%" y2="48%" stroke={c1+(s*0.5)+")"} strokeWidth="0.5"/>
+        <rect x="3%" y="35%" width="9%" height="13%" fill="none" stroke={c1+(s*0.4)+")"} strokeWidth="0.5"/>
+
+        {/* Scattered structural dots */}
+        <circle cx="50%" cy="50%" r="1.5" fill={c1+(s*0.6)+")"}/>
+        <circle cx="90%" cy="40%" r="1.5" fill={c2+(s*0.5)+")"}/>
+        <circle cx="70%" cy="70%" r="1.5" fill={c1+(s*0.5)+")"}/>
+        <circle cx="25%" cy="25%" r="1.5" fill={c2+(s*0.5)+")"}/>
+
+        {/* Retaining wall profile (bottom-right) */}
+        <path d="M 85%,92% L 85%,78% L 88%,75% L 88%,92% Z" fill="none" stroke={c2+s+")"} strokeWidth="0.8"/>
+        <line x1="85%" y1="82%" x2="88%" y2="82%" stroke={c2+s2+")"} strokeWidth="0.5"/>
+        <line x1="85%" y1="86%" x2="88%" y2="86%" stroke={c2+s2+")"} strokeWidth="0.5"/>
+
+        {/* Foundation hatching */}
+        <line x1="85%" y1="92%" x2="92%" y2="92%" stroke={c2+(s*0.7)+")"} strokeWidth="0.6"/>
+        <line x1="85.5%" y1="93.5%" x2="91.5%" y2="93.5%" stroke={c2+(s*0.5)+")"} strokeWidth="0.4"/>
+        <line x1="86%" y1="95%" x2="91%" y2="95%" stroke={c2+(s*0.3)+")"} strokeWidth="0.3"/>
+      </svg>
+
+      {/* Gradient overlays for depth */}
+      <div style={{
+        position:"absolute",inset:0,
+        background: dark
+          ? "radial-gradient(ellipse 90% 60% at 15% -15%, rgba(91,155,255,0.14) 0%, transparent 55%), radial-gradient(ellipse 55% 45% at 85% 105%, rgba(180,156,255,0.09) 0%, transparent 55%), radial-gradient(ellipse 40% 30% at 50% 50%, rgba(6,11,22,0.3) 0%, transparent 100%)"
+          : "radial-gradient(ellipse 90% 55% at 15% -10%, rgba(45,110,231,0.08) 0%, transparent 55%), radial-gradient(ellipse 55% 45% at 90% 105%, rgba(109,76,224,0.06) 0%, transparent 55%)"
+      }}/>
+    </div>
+  );
+}
+
 const DARK = {
   bg:"#060B16",
   surface:"rgba(255,255,255,0.04)",
@@ -100,12 +201,11 @@ const DARK = {
   rowAlt:"rgba(255,255,255,0.02)",
   shadow:"0 4px 28px rgba(0,0,0,0.45), 0 1px 3px rgba(0,0,0,0.25), inset 0 1px 0 rgba(255,255,255,0.04)",
   shadowHover:"0 8px 40px rgba(0,0,0,0.55), 0 2px 6px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.06)",
-  gradBg:"radial-gradient(ellipse 90% 60% at 15% -15%, rgba(91,155,255,0.14) 0%, transparent 55%), radial-gradient(ellipse 55% 45% at 85% 105%, rgba(180,156,255,0.09) 0%, transparent 55%), radial-gradient(ellipse 40% 30% at 50% 50%, rgba(6,11,22,0.4) 0%, transparent 100%), #060B16",
   glassBg:"rgba(255,255,255,0.035)",
   glassBlur:"blur(20px)",
   glassBorder:"rgba(255,255,255,0.08)",
   glassHighlight:"inset 0 1px 0 rgba(255,255,255,0.06)",
-  tagBg:"22", // opacity suffix for tag backgrounds
+  tagBg:"22",
   fontFamily:"'DM Sans', 'SF Pro Display', -apple-system, sans-serif",
   fontDisplay:"'Syne', 'SF Pro Display', -apple-system, sans-serif",
 };
@@ -128,12 +228,11 @@ const LIGHT = {
   rowAlt:"rgba(55,75,120,0.028)",
   shadow:"0 4px 24px rgba(15,25,50,0.07), 0 1px 3px rgba(15,25,50,0.04), inset 0 1px 0 rgba(255,255,255,0.8)",
   shadowHover:"0 8px 36px rgba(15,25,50,0.10), 0 2px 6px rgba(15,25,50,0.05), inset 0 1px 0 rgba(255,255,255,0.9)",
-  gradBg:"radial-gradient(ellipse 90% 55% at 15% -10%, rgba(45,110,231,0.07) 0%, transparent 55%), radial-gradient(ellipse 55% 45% at 90% 105%, rgba(109,76,224,0.05) 0%, transparent 55%), #EEF2F9",
   glassBg:"rgba(255,255,255,0.55)",
   glassBlur:"blur(24px)",
   glassBorder:"rgba(55,75,120,0.10)",
   glassHighlight:"inset 0 1px 0 rgba(255,255,255,0.95)",
-  tagBg:"18", // slightly less opacity for light mode tags
+  tagBg:"18",
   fontFamily:"'DM Sans', 'SF Pro Display', -apple-system, sans-serif",
   fontDisplay:"'Syne', 'SF Pro Display', -apple-system, sans-serif",
 };
@@ -901,15 +1000,18 @@ export default function App() {
     <ThemeCtx.Provider value={{T,dark}}>
     <div style={{
       minHeight:"100vh",
-      background: T.gradBg,
+      backgroundColor: T.bg,
       color: T.text,
       fontFamily: T.fontFamily,
       padding: "0",
       fontSize: 13,
-      transition: "background 0.3s, color 0.3s",
+      transition: "background-color 0.3s, color 0.3s",
       WebkitFontSmoothing: "antialiased",
       MozOsxFontSmoothing: "grayscale",
+      position: "relative",
     }}>
+      {/* Abstract construction background pattern */}
+      <BgPattern dark={dark} />
       <style>{`
         * { box-sizing: border-box; }
         html { scroll-behavior: smooth; }
@@ -991,14 +1093,13 @@ export default function App() {
 
       {/* ── DB STATUS BANNER ──────────────────────────────────────────────── */}
       {dbLoading && (
-        <div style={{background:T.accent+"12",borderBottom:`1px solid ${T.accent}22`,padding:"10px 32px",fontSize:12,color:T.accent,fontWeight:500,display:"flex",alignItems:"center",gap:8,backdropFilter:"blur(12px)",WebkitBackdropFilter:"blur(12px)"}}>
+        <div style={{background:T.accent+"12",borderBottom:`1px solid ${T.accent}22`,padding:"10px 32px",fontSize:12,color:T.accent,fontWeight:500,display:"flex",alignItems:"center",gap:8,backdropFilter:"blur(12px)",WebkitBackdropFilter:"blur(12px)",position:"relative",zIndex:2}}>
           <span style={{animation:"spin 1s linear infinite",display:"inline-block"}}>⟳</span>
           Carregando dados do banco de dados...
         </div>
       )}
       {dbError && (
-        <div style={{background:T.danger+"12",borderBottom:`1px solid ${T.danger}22`,padding:"12px 32px",fontSize:12,color:T.danger,fontWeight:500,display:"flex",flexDirection:"column",gap:4,backdropFilter:"blur(12px)",WebkitBackdropFilter:"blur(12px)"}}>
-          <div style={{fontWeight:700}}>⚠ Erro ao conectar com o Supabase:</div>
+        <div style={{background:T.danger+"12",borderBottom:`1px solid ${T.danger}22`,padding:"12px 32px",fontSize:12,color:T.danger,fontWeight:500,display:"flex",flexDirection:"column",gap:4,backdropFilter:"blur(12px)",WebkitBackdropFilter:"blur(12px)",position:"relative",zIndex:2}}>          <div style={{fontWeight:700}}>⚠ Erro ao conectar com o Supabase:</div>
           <div style={{fontFamily:"monospace",fontSize:11,opacity:0.9}}>{dbError}</div>
           <div style={{fontSize:11,opacity:0.7}}>Abra o Console do navegador (F12) para mais detalhes.</div>
         </div>
@@ -1160,7 +1261,7 @@ export default function App() {
       </div>
 
       {/* ── PAGE CONTENT WRAPPER ──────────────────────────────────────────── */}
-      <div className="rbim-content-wrapper" style={{maxWidth: 1600, margin: "0 auto", padding: "28px 32px"}}>
+      <div className="rbim-content-wrapper" style={{maxWidth: 1600, margin: "0 auto", padding: "28px 32px", position:"relative", zIndex:1}}>
 
       {/* ════ VISÃO GERAL ════════════════════════════════════════════════════ */}
       {tab==="visao" && (
