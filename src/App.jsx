@@ -45,6 +45,21 @@ const mapReceita    = r => ({ id:r.id, data:r.data, obra:r.obra, banco:r.banco, 
 const mapOrcamento  = r => ({ id:r.id, obra:r.obra, categoria:r.categoria, subcategoria:r.subcategoria, tipo:r.tipo, natureza:r.natureza, valorOrcado:Number(r.valor_orcado) });
 const mapApagar     = r => ({ id:r.id, obra:r.obra, descricao:r.descricao, categoria:r.categoria, subcategoria:r.subcategoria, tipo:r.tipo, natureza:r.natureza, valor:Number(r.valor), vencimento:r.vencimento, fornecedor:r.fornecedor, pagador:r.pagador, banco:r.banco, pago:r.pago, dataPago:r.data_pago });
 
+// ─── RESPONSIVE HOOK ──────────────────────────────────────────────────────────
+function useIsMobile(breakpoint = 768) {
+  const [isMobile, setIsMobile] = useState(() =>
+    typeof window !== "undefined" ? window.innerWidth < breakpoint : false
+  );
+  useEffect(() => {
+    const mq = window.matchMedia(`(max-width: ${breakpoint - 1}px)`);
+    const handler = (e) => setIsMobile(e.matches);
+    mq.addEventListener("change", handler);
+    setIsMobile(mq.matches);
+    return () => mq.removeEventListener("change", handler);
+  }, [breakpoint]);
+  return isMobile;
+}
+
 // ─── THEME ────────────────────────────────────────────────────────────────────
 const ThemeCtx = createContext();
 const useTheme = () => useContext(ThemeCtx);
@@ -56,6 +71,14 @@ if (typeof document !== "undefined" && !document.getElementById("rbim-fonts")) {
   link.rel = "stylesheet";
   link.href = "https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&display=swap";
   document.head.appendChild(link);
+
+  // viewport meta for mobile
+  if (!document.querySelector('meta[name="viewport"]')) {
+    const meta = document.createElement("meta");
+    meta.name = "viewport";
+    meta.content = "width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no";
+    document.head.appendChild(meta);
+  }
 }
 
 const DARK = {
@@ -564,6 +587,9 @@ function CurrencyInput({ value, onChange, label, required, inputStyle, labelStyl
 export default function App() {
   const [dark, setDark] = useState(true);
   const T = dark ? DARK : LIGHT;
+  const isMobile = useIsMobile();
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [quickCostOpen, setQuickCostOpen] = useState(false);
 
   // ── Estado — começa vazio, carregado do Supabase ──────────────────────────
   const [obras,    setObras]    = useState([]);
@@ -816,6 +842,50 @@ export default function App() {
         ::-webkit-scrollbar-thumb { background: rgba(128,128,128,0.2); border-radius: 99px; }
         ::-webkit-scrollbar-thumb:hover { background: rgba(128,128,128,0.35); }
         button:active { transform: scale(0.97); }
+
+        @media (max-width: 767px) {
+          .rbim-header-tabs { display: none !important; }
+          .rbim-header-actions { display: none !important; }
+          .rbim-mobile-tabs { display: flex !important; }
+          .rbim-mobile-fab { display: flex !important; }
+          .rbim-g2-responsive { grid-template-columns: 1fr !important; }
+          .rbim-grid5 { grid-template-columns: repeat(2, 1fr) !important; }
+          .rbim-grid2-charts { grid-template-columns: 1fr !important; }
+          .rbim-kpi-row { flex-direction: column !important; }
+          .rbim-kpi-row > div { min-width: 100% !important; }
+          .rbim-filter-row { flex-direction: column !important; }
+          .rbim-filter-row > div { width: 100% !important; min-width: 100% !important; }
+          .rbim-filter-row select { width: 100% !important; }
+          .rbim-filter-row input { width: 100% !important; }
+          .rbim-cadastro-grid { grid-template-columns: 1fr !important; }
+          .rbim-obra-card-grid { grid-template-columns: repeat(2, 1fr) !important; }
+          .rbim-obra-card-header { flex-direction: column !important; align-items: flex-start !important; gap: 8px !important; }
+          .rbim-apagar-card { flex-direction: column !important; align-items: flex-start !important; gap: 10px !important; }
+          .rbim-apagar-card > div:nth-child(2) { text-align: left !important; }
+          .rbim-apagar-card > div:nth-child(3) { text-align: left !important; }
+          .rbim-apagar-card > button { width: 100% !important; }
+          .rbim-bancos-row { flex-direction: column !important; }
+          .rbim-bancos-row > div { min-width: 100% !important; }
+          .rbim-modal-inner { max-width: 100% !important; border-radius: 0 !important; max-height: 100vh !important; height: 100vh !important; padding: 20px 16px !important; }
+          .rbim-modal-overlay { padding: 0 !important; }
+          .rbim-content-wrapper { padding: 16px 12px 100px 12px !important; }
+          .rbim-header-inner { padding: 0 12px !important; }
+          .rbim-budget-toolbar { flex-direction: column !important; gap: 8px !important; }
+          .rbim-budget-toolbar > div { width: 100% !important; }
+          .rbim-orc-kpis { flex-direction: column !important; }
+          .rbim-orc-kpis > div { min-width: 100% !important; }
+          .rbim-dash-header { flex-direction: column !important; align-items: flex-start !important; gap: 10px !important; }
+          .rbim-dash-filters { flex-direction: column !important; width: 100% !important; }
+          .rbim-dash-filters > div { width: 100% !important; }
+          .rbim-dash-filters select { width: 100% !important; }
+          .rbim-sub-tabs { overflow-x: auto !important; flex-wrap: nowrap !important; -webkit-overflow-scrolling: touch; }
+          .rbim-sub-tabs > button { flex-shrink: 0 !important; }
+        }
+
+        @media (min-width: 768px) {
+          .rbim-mobile-tabs { display: none !important; }
+          .rbim-mobile-fab { display: none !important; }
+        }
       `}</style>
 
       {/* ── DB STATUS BANNER ──────────────────────────────────────────────── */}
@@ -843,15 +913,15 @@ export default function App() {
         backdropFilter: "blur(20px)",
         WebkitBackdropFilter: "blur(20px)",
         borderBottom: `1px solid ${T.border}`,
-        padding: "0 32px",
       }}>
-        <div style={{
+        <div className="rbim-header-inner" style={{
           display: "flex",
           alignItems: "center",
           justifyContent: "space-between",
           height: 64,
           maxWidth: 1600,
           margin: "0 auto",
+          padding: "0 32px",
         }}>
           <div style={{display:"flex",alignItems:"center",gap:12}}>
             <div style={{
@@ -876,7 +946,8 @@ export default function App() {
             </div>
           </div>
 
-          <div style={{display:"flex",gap:2,alignItems:"center"}}>
+          {/* Desktop tabs */}
+          <div className="rbim-header-tabs" style={{display:"flex",gap:2,alignItems:"center"}}>
             {TABS.map(({id,label,icon,badge})=>(
               <button key={id} onClick={()=>setTab(id)} style={{
                 padding: "6px 14px",
@@ -915,17 +986,79 @@ export default function App() {
             ))}
           </div>
 
-          <div style={{display:"flex",gap:8,alignItems:"center"}}>
+          {/* Desktop actions */}
+          <div className="rbim-header-actions" style={{display:"flex",gap:8,alignItems:"center"}}>
             <button onClick={()=>openModal("custo")} style={{...btnPrimary, padding:"7px 16px", fontSize:12}}>+ Custo</button>
             <button onClick={()=>openModal("receita")} style={{...btnPrimary, background:`linear-gradient(135deg,${T.success},${T.success}cc)`, boxShadow:`0 2px 12px ${T.success}44`, padding:"7px 16px", fontSize:12}}>+ Receita</button>
             <button onClick={()=>openModal("apagar_new")} style={{...btnPrimary, background:`linear-gradient(135deg,${T.danger},${T.danger}cc)`, boxShadow:`0 2px 12px ${T.danger}44`, padding:"7px 16px", fontSize:12}}>+ A Pagar</button>
             <button onClick={()=>setDark(d=>!d)} style={{...btnGhost,fontSize:15,padding:"7px 10px",borderRadius:8,width:36,height:36,display:"flex",alignItems:"center",justifyContent:"center"}} title="Alternar tema">{dark?"☀️":"🌙"}</button>
           </div>
+
+          {/* Mobile: theme toggle + hamburger */}
+          <div className="rbim-mobile-tabs" style={{display:"none",gap:8,alignItems:"center"}}>
+            <button onClick={()=>setDark(d=>!d)} style={{...btnGhost,fontSize:15,padding:"7px 10px",borderRadius:8,width:36,height:36,display:"flex",alignItems:"center",justifyContent:"center"}} title="Alternar tema">{dark?"☀️":"🌙"}</button>
+            <button onClick={()=>setMobileMenuOpen(!mobileMenuOpen)} style={{
+              background:"transparent",border:`1px solid ${T.border2}`,
+              color:T.text,borderRadius:8,width:40,height:40,
+              display:"flex",alignItems:"center",justifyContent:"center",
+              cursor:"pointer",fontSize:18,fontFamily:"inherit",
+            }}>
+              {mobileMenuOpen ? "✕" : "☰"}
+            </button>
+          </div>
         </div>
+
+        {/* Mobile dropdown menu */}
+        {mobileMenuOpen && (
+          <div style={{
+            background: dark ? "rgba(8,12,20,0.97)" : "rgba(240,244,250,0.97)",
+            backdropFilter:"blur(20px)",WebkitBackdropFilter:"blur(20px)",
+            borderTop: `1px solid ${T.border}`,
+            padding: "12px 16px",
+            display: "flex",
+            flexDirection: "column",
+            gap: 4,
+          }}>
+            {TABS.map(({id,label,icon,badge})=>(
+              <button key={id} onClick={()=>{setTab(id);setMobileMenuOpen(false);}} style={{
+                padding: "12px 16px",
+                border: "none",
+                cursor: "pointer",
+                fontWeight: tab===id ? 700 : 400,
+                fontSize: 14,
+                fontFamily: T.fontFamily,
+                transition: "all 0.15s",
+                background: tab===id ? T.accent + "18" : "transparent",
+                color: tab===id ? T.accent : T.text2,
+                borderRadius: 10,
+                display: "flex",
+                alignItems: "center",
+                gap: 10,
+                textAlign: "left",
+                position:"relative",
+              }}>
+                <span style={{fontSize: 14, opacity: 0.7, width:20, textAlign:"center"}}>{icon}</span>
+                {label}
+                {badge>0 && (
+                  <span style={{
+                    background: T.danger, color: "#fff", borderRadius: 999,
+                    fontSize: 9, padding: "2px 6px", fontWeight: 700,
+                    marginLeft: "auto",
+                  }}>{badge}</span>
+                )}
+              </button>
+            ))}
+            <div style={{borderTop:`1px solid ${T.border}`,marginTop:4,paddingTop:8,display:"flex",gap:8}}>
+              <button onClick={()=>{openModal("custo");setMobileMenuOpen(false);}} style={{...btnPrimary,flex:1,fontSize:12,textAlign:"center",padding:"10px 12px"}}>+ Custo</button>
+              <button onClick={()=>{openModal("receita");setMobileMenuOpen(false);}} style={{...btnPrimary,flex:1,background:`linear-gradient(135deg,${T.success},${T.success}cc)`,boxShadow:`0 2px 12px ${T.success}44`,fontSize:12,textAlign:"center",padding:"10px 12px"}}>+ Receita</button>
+              <button onClick={()=>{openModal("apagar_new");setMobileMenuOpen(false);}} style={{...btnPrimary,flex:1,background:`linear-gradient(135deg,${T.danger},${T.danger}cc)`,boxShadow:`0 2px 12px ${T.danger}44`,fontSize:12,textAlign:"center",padding:"10px 12px"}}>+ A Pagar</button>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* ── PAGE CONTENT WRAPPER ──────────────────────────────────────────── */}
-      <div style={{maxWidth: 1600, margin: "0 auto", padding: "28px 32px"}}>
+      <div className="rbim-content-wrapper" style={{maxWidth: 1600, margin: "0 auto", padding: "28px 32px"}}>
 
       {/* ════ VISÃO GERAL ════════════════════════════════════════════════════ */}
       {tab==="visao" && (
@@ -958,7 +1091,7 @@ export default function App() {
           <div style={{display:"flex",flexDirection:"column",gap:12}}>
             {obrasMetrica.map(o=>(
               <div key={o.id} style={{...surface({padding:"24px 28px",border:`1px solid ${o.lucro<0?T.danger+"33":T.border}`,borderLeft:`3px solid ${o.lucro<0?T.danger:T.success}`})}}>
-                <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:14}}>
+                <div className="rbim-obra-card-header" style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:14}}>
                   <div>
                     <div style={{fontWeight:700,fontSize:17,fontFamily:T.fontDisplay||"inherit",letterSpacing:"-0.02em"}}>{o.nome}</div>
                     <div style={{fontSize:11,color:T.text3,marginTop:4,display:"flex",gap:6,alignItems:"center"}}>
@@ -972,7 +1105,7 @@ export default function App() {
                     <button onClick={()=>openModal("obra_edit",o)} style={btnGhost}>✏️ Editar</button>
                   </div>
                 </div>
-                <div style={{display:"grid",gridTemplateColumns:"repeat(5,1fr)",gap:10,marginBottom:16}}>
+                <div className="rbim-obra-card-grid" style={{display:"grid",gridTemplateColumns:"repeat(5,1fr)",gap:10,marginBottom:16}}>
                   {[["Contrato",fmt(o.contrato),T.text],["Orçado",fmt(o.orc),T.info],["Gasto",fmt(o.gasto),T.danger],["Recebido",fmt(o.rec),T.success],["Lucro Esperado",fmt(o.lucro),o.lucro>=0?T.success:T.danger]].map(([l,v,c])=>(
                     <div key={l} style={{background:T.surface2,borderRadius:10,padding:"12px 14px",border:`1px solid ${T.border}`}}>
                       <div style={{fontSize:9,color:T.text3,marginBottom:4,textTransform:"uppercase",letterSpacing:"0.07em",fontWeight:600}}>{l}</div>
@@ -1000,7 +1133,7 @@ export default function App() {
             <div style={{fontWeight:700,fontSize:16,fontFamily:T.fontDisplay||"inherit",letterSpacing:"-0.01em"}}>Lançamentos de Custos</div>
             <button onClick={()=>openModal("custo")} style={btnPrimary}>+ Novo Custo</button>
           </div>
-          <div style={{...surface({padding:"16px 20px",marginBottom:14}),display:"flex",gap:12,flexWrap:"wrap",alignItems:"flex-end"}}>
+          <div className="rbim-filter-row" style={{...surface({padding:"16px 20px",marginBottom:14}),display:"flex",gap:12,flexWrap:"wrap",alignItems:"flex-end"}}>
             {[["Obra",fcObra,setFcObra,obrasNames],["Categoria",fcCat,setFcCat,catsNames]].map(([lbl,val,set,opts])=>(
               <div key={lbl} style={{display:"flex",flexDirection:"column",gap:3}}>
                 <label style={labelStyle}>{lbl}</label>
@@ -1162,7 +1295,7 @@ export default function App() {
       {/* ════ A PAGAR ════════════════════════════════════════════════════════ */}
       {tab==="apagar_aba" && (
         <div>
-          <div style={{display:"flex",gap:10,marginBottom:14,flexWrap:"wrap"}}>
+          <div className="rbim-kpi-row" style={{display:"flex",gap:10,marginBottom:14,flexWrap:"wrap"}}>
             {[["A Pagar",fmt(totalApagar),`${apagarPend.length} pendentes`,T.danger],["Vencidas",fmt(vencidas.reduce((s,a)=>s+a.valor,0)),`${vencidas.length} contas`,T.danger],["Venc. 7d",fmt(vencendo.reduce((s,a)=>s+a.valor,0)),`${vencendo.length} contas`,T.accent2],["Pagas",fmt(apagar.filter(a=>a.pago).reduce((s,a)=>s+a.valor,0)),"movidas p/ custos",T.success]].map(([l,v,s,c])=>(
               <div key={l} style={{...surface({padding:"20px 22px"}),flex:1,minWidth:140}}>
                 <div style={{fontSize:10,color:T.text3,textTransform:"uppercase",letterSpacing:"0.08em",marginBottom:6,fontWeight:600}}>{l}</div>
@@ -1182,7 +1315,7 @@ export default function App() {
               const diff=Math.ceil((new Date(item.vencimento)-hoje)/86400000);
               const isV=diff<0,isU=diff>=0&&diff<=7;
               return (
-                <div key={item.id} style={{...surface({border:`1px solid ${isV?T.danger:isU?T.accent2:T.border}`}),display:"flex",justifyContent:"space-between",alignItems:"center",gap:12,flexWrap:"wrap"}}>
+                <div key={item.id} className="rbim-apagar-card" style={{...surface({border:`1px solid ${isV?T.danger:isU?T.accent2:T.border}`}),display:"flex",justifyContent:"space-between",alignItems:"center",gap:12,flexWrap:"wrap"}}>
                   <div style={{flex:1,minWidth:200}}>
                     <div style={{fontWeight:800,fontSize:13}}>{item.descricao}</div>
                     <div style={{fontSize:11,color:T.text2,marginTop:3}}>{item.obra} · {item.categoria} · {item.subcategoria}</div>
@@ -1222,8 +1355,8 @@ export default function App() {
 
       {/* ════ MODAIS ═════════════════════════════════════════════════════════ */}
       {modal && (
-        <div onClick={closeModal} style={{position:"fixed",inset:0,background:dark?"rgba(0,0,0,0.7)":"rgba(0,0,0,0.35)",backdropFilter:"blur(8px)",WebkitBackdropFilter:"blur(8px)",zIndex:999,display:"flex",alignItems:"center",justifyContent:"center",padding:20}}>
-          <div onClick={e=>e.stopPropagation()} style={{background:dark?"rgba(12,17,28,0.97)":"rgba(255,255,255,0.97)",backdropFilter:"blur(24px)",WebkitBackdropFilter:"blur(24px)",border:`1px solid ${T.border2}`,borderRadius:20,padding:28,width:"100%",maxWidth:580,maxHeight:"92vh",overflowY:"auto",color:T.text,fontFamily:T.fontFamily,boxShadow:T.shadowHover}}>
+        <div className="rbim-modal-overlay" onClick={closeModal} style={{position:"fixed",inset:0,background:dark?"rgba(0,0,0,0.7)":"rgba(0,0,0,0.35)",backdropFilter:"blur(8px)",WebkitBackdropFilter:"blur(8px)",zIndex:999,display:"flex",alignItems:"center",justifyContent:"center",padding:20}}>
+          <div className="rbim-modal-inner" onClick={e=>e.stopPropagation()} style={{background:dark?"rgba(12,17,28,0.97)":"rgba(255,255,255,0.97)",backdropFilter:"blur(24px)",WebkitBackdropFilter:"blur(24px)",border:`1px solid ${T.border2}`,borderRadius:20,padding:28,width:"100%",maxWidth:580,maxHeight:"92vh",overflowY:"auto",color:T.text,fontFamily:T.fontFamily,boxShadow:T.shadowHover}}>
             {modal==="custo" && <ModalCusto T={T} obras={obras} bancos={bancos} cats={cats} custos={custos}
               inputStyle={inputStyle} labelStyle={labelStyle} btnPrimary={btnPrimary}
               onClose={closeModal} initial={custoEditando} fornecedores={fornecedores}
@@ -1273,6 +1406,98 @@ export default function App() {
           </div>
         </div>
       )}
+      </div>
+
+      {/* ════ MOBILE FAB — Atalho rápido para lançamento ════════════════════ */}
+      <div className="rbim-mobile-fab" style={{
+        display: "none",
+        position: "fixed",
+        bottom: 20,
+        right: 16,
+        left: 16,
+        zIndex: 90,
+        gap: 8,
+      }}>
+        {/* Mini actions */}
+        {quickCostOpen && (
+          <div style={{
+            position: "fixed", bottom: 76, right: 16, left: 16,
+            display: "flex", flexDirection: "column", gap: 6,
+            animation: "fadeUp 0.2s ease-out",
+          }}>
+            <style>{`@keyframes fadeUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}`}</style>
+            <button onClick={()=>{setQuickCostOpen(false);openModal("custo");}} style={{
+              padding: "14px 20px", borderRadius: 14,
+              background: dark ? "rgba(12,17,28,0.95)" : "rgba(255,255,255,0.95)",
+              backdropFilter: "blur(20px)", WebkitBackdropFilter: "blur(20px)",
+              border: `1px solid ${T.accent}44`,
+              color: T.accent, fontWeight: 700, fontSize: 14,
+              fontFamily: T.fontFamily, cursor: "pointer",
+              display: "flex", alignItems: "center", gap: 10,
+              boxShadow: T.shadowHover,
+            }}>
+              <span style={{fontSize:18}}>💸</span> Lançar Custo Completo
+            </button>
+            <button onClick={()=>{setQuickCostOpen(false);openModal("receita");}} style={{
+              padding: "14px 20px", borderRadius: 14,
+              background: dark ? "rgba(12,17,28,0.95)" : "rgba(255,255,255,0.95)",
+              backdropFilter: "blur(20px)", WebkitBackdropFilter: "blur(20px)",
+              border: `1px solid ${T.success}44`,
+              color: T.success, fontWeight: 700, fontSize: 14,
+              fontFamily: T.fontFamily, cursor: "pointer",
+              display: "flex", alignItems: "center", gap: 10,
+              boxShadow: T.shadowHover,
+            }}>
+              <span style={{fontSize:18}}>💚</span> Registrar Receita
+            </button>
+            <button onClick={()=>{setQuickCostOpen(false);openModal("apagar_new");}} style={{
+              padding: "14px 20px", borderRadius: 14,
+              background: dark ? "rgba(12,17,28,0.95)" : "rgba(255,255,255,0.95)",
+              backdropFilter: "blur(20px)", WebkitBackdropFilter: "blur(20px)",
+              border: `1px solid ${T.danger}44`,
+              color: T.danger, fontWeight: 700, fontSize: 14,
+              fontFamily: T.fontFamily, cursor: "pointer",
+              display: "flex", alignItems: "center", gap: 10,
+              boxShadow: T.shadowHover,
+            }}>
+              <span style={{fontSize:18}}>⏰</span> Conta a Pagar
+            </button>
+          </div>
+        )}
+
+        {/* Overlay to close */}
+        {quickCostOpen && (
+          <div onClick={()=>setQuickCostOpen(false)} style={{
+            position: "fixed", inset: 0, background: "rgba(0,0,0,0.4)",
+            zIndex: -1,
+          }}/>
+        )}
+
+        {/* Main FAB button */}
+        <button onClick={()=>setQuickCostOpen(!quickCostOpen)} style={{
+          width: "100%",
+          padding: "16px 24px",
+          borderRadius: 16,
+          border: "none",
+          cursor: "pointer",
+          fontWeight: 700,
+          fontSize: 15,
+          fontFamily: T.fontFamily,
+          color: "#fff",
+          background: quickCostOpen
+            ? `linear-gradient(135deg, ${T.text3}, ${T.text3}cc)`
+            : `linear-gradient(135deg, ${T.accent}, ${T.accent2})`,
+          boxShadow: `0 6px 24px ${quickCostOpen ? T.text3 : T.accent}55, 0 2px 8px rgba(0,0,0,0.2)`,
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          gap: 8,
+          transition: "all 0.2s",
+          letterSpacing: "0.01em",
+        }}>
+          <span style={{fontSize:18,transition:"transform 0.2s",transform:quickCostOpen?"rotate(45deg)":"rotate(0deg)",display:"inline-block"}}>+</span>
+          {quickCostOpen ? "Fechar" : "Novo Lançamento"}
+        </button>
       </div>
     </div>
     </ThemeCtx.Provider>
@@ -1810,7 +2035,7 @@ function AbaOrcamento({ T, obras, custos, orcamento, setOrcamento, saldoBancos,
   return (
     <div>
       {/* KPIs com gauge */}
-      <div style={{ display: "flex", gap: 10, marginBottom: 16, flexWrap: "wrap", alignItems: "stretch" }}>
+      <div className="rbim-orc-kpis" style={{ display: "flex", gap: 10, marginBottom: 16, flexWrap: "wrap", alignItems: "stretch" }}>
 
         {/* Gauge geral */}
         <div style={{ ...surface({ padding: "16px 20px" }), display: "flex", alignItems: "center", gap: 16, minWidth: 200, flex: "0 0 auto" }}>
@@ -1851,7 +2076,7 @@ function AbaOrcamento({ T, obras, custos, orcamento, setOrcamento, saldoBancos,
       </div>
 
       {/* Toolbar */}
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end", marginBottom: 14, flexWrap: "wrap", gap: 10 }}>
+      <div className="rbim-budget-toolbar" style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end", marginBottom: 14, flexWrap: "wrap", gap: 10 }}>
         <div>
           <label style={labelStyle}>Filtrar por Obra</label>
           <select value={filtroObra} onChange={e => setFiltroObra(e.target.value)} style={{ ...inputStyle, width: 220 }}>
@@ -2086,12 +2311,12 @@ function DashboardFinanceiro({ T, receitas, setReceitas, custos, saldoBancos,
   return (
     <div>
       {/* Header + filtro mês */}
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end", marginBottom: 16, flexWrap: "wrap", gap: 10 }}>
+      <div className="rbim-dash-header" style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end", marginBottom: 16, flexWrap: "wrap", gap: 10 }}>
         <div>
           <div style={{ fontWeight: 900, fontSize: 16 }}>💚 Dashboard Financeiro</div>
           <div style={{ fontSize: 11, color: T.text3, marginTop: 2 }}>Entradas, saídas e fluxo de caixa</div>
         </div>
-        <div style={{ display: "flex", gap: 10, alignItems: "flex-end", flexWrap: "wrap" }}>
+        <div className="rbim-dash-filters" style={{ display: "flex", gap: 10, alignItems: "flex-end", flexWrap: "wrap" }}>
           <div>
             <label style={labelStyle}>Filtrar Mês/Ano</label>
             <select value={filtroMes} onChange={e => setFiltroMes(e.target.value)} style={{ ...inputStyle, width: 140 }}>
@@ -2115,7 +2340,7 @@ function DashboardFinanceiro({ T, receitas, setReceitas, custos, saldoBancos,
       </div>
 
       {/* KPIs do período */}
-      <div style={{ display: "flex", gap: 10, marginBottom: 16, flexWrap: "wrap" }}>
+      <div className="rbim-kpi-row" style={{ display: "flex", gap: 10, marginBottom: 16, flexWrap: "wrap" }}>
         {[
           { l: "Entradas" + (filtroMes !== "TODOS" ? ` (${filtroMes})` : "") + (filtroBanco !== "TODOS" ? ` · ${filtroBanco}` : ""), v: fmt(totalEntFilt), c: T.success, sub: `${receitasFilt.length} medições` },
           { l: "Saídas"   + (filtroMes !== "TODOS" ? ` (${filtroMes})` : "") + (filtroBanco !== "TODOS" ? ` · ${filtroBanco}` : ""), v: fmt(totalSaiFilt), c: T.danger,  sub: `${custosFilt.length} lançamentos` },
@@ -2136,7 +2361,7 @@ function DashboardFinanceiro({ T, receitas, setReceitas, custos, saldoBancos,
           Movimentação por Conta Bancária
           {filtroMes !== "TODOS" && <span style={{ fontSize: 11, color: T.text3, fontWeight: 400, marginLeft: 8 }}>({filtroMes})</span>}
         </div>
-        <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
+        <div className="rbim-bancos-row" style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
           {bancosFlow.map(b => (
             <div key={b.id} style={{ ...surface({ padding: "20px 22px" }), flex: 1, minWidth: 200 }}>
               <div style={{ fontWeight: 700, fontSize: 14, marginBottom: 3, fontFamily: T.fontDisplay||"inherit" }}>{b.nome}</div>
@@ -2174,7 +2399,7 @@ function DashboardFinanceiro({ T, receitas, setReceitas, custos, saldoBancos,
       </div>
 
       {/* Gráficos de fluxo de caixa */}
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14, marginBottom: 16 }}>
+      <div className="rbim-grid2-charts" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14, marginBottom: 16 }}>
 
         {/* Gráfico 1: Barras agrupadas Entradas vs Saídas por mês */}
         <div style={surface()}>
@@ -2529,7 +2754,7 @@ function VisaoGeral({ T, custos, totalReceitas, totalCustos, totalApagar, apagar
 
   return (<>
     {/* KPIs */}
-    <div style={{ display: "flex", gap: 10, marginBottom: 14, flexWrap: "wrap" }}>
+    <div className="rbim-kpi-row" style={{ display: "flex", gap: 10, marginBottom: 14, flexWrap: "wrap" }}>
       {[
         { l: "Total Receitas",   v: fmt(totalReceitas),                c: T.success, icon: "↑" },
         { l: "Total Custos",     v: fmt(totalCustos),                  c: T.danger,  icon: "↓" },
@@ -2546,7 +2771,7 @@ function VisaoGeral({ T, custos, totalReceitas, totalCustos, totalApagar, apagar
     </div>
 
     {/* Filtros */}
-    <div style={{ ...surface({ padding: "16px 20px", marginBottom: 16 }), display: "flex", gap: 12, flexWrap: "wrap", alignItems: "flex-end" }}>
+    <div className="rbim-filter-row" style={{ ...surface({ padding: "16px 20px", marginBottom: 16 }), display: "flex", gap: 12, flexWrap: "wrap", alignItems: "flex-end" }}>
       {[["Obra", fObra, handleObraChange, obrasList], ["Mês", fMes, setFMes, mesesList], ["Categoria", fCat, setFCat, catsNames]].map(([lbl, val, set, opts]) => (
         <div key={lbl} style={{ display: "flex", flexDirection: "column", gap: 3 }}>
           <label style={labelStyle}>{lbl}</label>
@@ -2564,7 +2789,7 @@ function VisaoGeral({ T, custos, totalReceitas, totalCustos, totalApagar, apagar
 
     {/* ── CENÁRIO A: todas as obras ── */}
     {!modoObra && (
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14, marginBottom: 14 }}>
+      <div className="rbim-grid2-charts" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14, marginBottom: 14 }}>
         <GraficoGastosPorObra T={T} data={porObra} />
         <GraficoCategorias T={T} porCat={porCat} porSub={porSub} selectedCat={selectedCat} onSelectCat={selectCat} onReset={resetCat} />
       </div>
@@ -2572,7 +2797,7 @@ function VisaoGeral({ T, custos, totalReceitas, totalCustos, totalApagar, apagar
 
     {/* ── CENÁRIO B: obra específica ── */}
     {modoObra && (
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14, marginBottom: 14 }}>
+      <div className="rbim-grid2-charts" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14, marginBottom: 14 }}>
         <GraficoCategorias T={T} porCat={porCat} porSub={porSub} selectedCat={selectedCat} onSelectCat={selectCat} onReset={resetCat} />
         {/* subcategorias: gráfico de barras ou mensagem inicial */}
         <div style={{ ...surface(), display: "flex", flexDirection: "column" }}>
@@ -2619,7 +2844,7 @@ function VisaoGeral({ T, custos, totalReceitas, totalCustos, totalApagar, apagar
     )}
 
     {/* ── Natureza do Gasto (independente do cenário) ── */}
-    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14, marginBottom: 14 }}>
+    <div className="rbim-grid2-charts" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14, marginBottom: 14 }}>
       <GraficoNatureza T={T} data={custos} />
       <GraficoEvolucaoMensal T={T} data={custos} />
     </div>
@@ -2705,7 +2930,7 @@ function CadastrosTab({T,obras,setObras,bancos,setBancos,cats,setCats,inputStyle
 
   return (
     <div>
-      <div style={{display:"flex",gap:6,marginBottom:16}}>
+      <div className="rbim-sub-tabs" style={{display:"flex",gap:6,marginBottom:16}}>
         {ST.map(({id,l})=>(
           <button key={id} onClick={()=>setSubTab(id)} style={{padding:"7px 14px",borderRadius:7,border:"none",cursor:"pointer",fontWeight:700,fontSize:11,fontFamily:T.fontFamily||"inherit",
             background:subTab===id?T.accent:T.surface2,color:subTab===id?"#fff":T.text2}}>
@@ -2716,7 +2941,7 @@ function CadastrosTab({T,obras,setObras,bancos,setBancos,cats,setCats,inputStyle
 
       {/* OBRAS */}
       {subTab==="obras" && (
-        <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:16}}>
+        <div className="rbim-cadastro-grid" style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:16}}>
           <div style={surface()}>
             <div style={{fontWeight:700,marginBottom:14,fontSize:14,fontFamily:T.fontDisplay||"inherit",letterSpacing:"-0.01em",color:T.accent}}>Nova Obra</div>
             <div style={{display:"flex",flexDirection:"column",gap:10}}>
@@ -2750,7 +2975,7 @@ function CadastrosTab({T,obras,setObras,bancos,setBancos,cats,setCats,inputStyle
 
       {/* BANCOS */}
       {subTab==="bancos" && (
-        <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:16}}>
+        <div className="rbim-cadastro-grid" style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:16}}>
           <div style={surface()}>
             <div style={{fontWeight:700,marginBottom:14,fontSize:14,fontFamily:T.fontDisplay||"inherit",letterSpacing:"-0.01em",color:T.accent}}>Nova Conta Bancária</div>
             <div style={{display:"flex",flexDirection:"column",gap:10}}>
@@ -2784,7 +3009,7 @@ function CadastrosTab({T,obras,setObras,bancos,setBancos,cats,setCats,inputStyle
 
       {/* CATEGORIAS */}
       {subTab==="cats" && (
-        <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:16}}>
+        <div className="rbim-cadastro-grid" style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:16}}>
           <div style={surface()}>
             <div style={{fontWeight:700,marginBottom:14,fontSize:14,fontFamily:T.fontDisplay||"inherit",letterSpacing:"-0.01em",color:T.accent}}>Nova Categoria</div>
             <div style={{display:"flex",flexDirection:"column",gap:10}}>
@@ -2833,7 +3058,7 @@ function CadastrosTab({T,obras,setObras,bancos,setBancos,cats,setCats,inputStyle
 
       {/* TIPOS DE CUSTO */}
       {subTab==="tipos" && (
-        <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:16}}>
+        <div className="rbim-cadastro-grid" style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:16}}>
           <div style={surface()}>
             <div style={{fontWeight:700,marginBottom:14,fontSize:14,fontFamily:T.fontDisplay||"inherit",letterSpacing:"-0.01em",color:T.accent}}>Novo Tipo de Custo</div>
             <div style={{display:"flex",flexDirection:"column",gap:10}}>
@@ -2888,7 +3113,7 @@ function CadastrosTab({T,obras,setObras,bancos,setBancos,cats,setCats,inputStyle
 
       {/* NATUREZAS DO GASTO */}
       {subTab==="naturezas" && (
-        <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:16}}>
+        <div className="rbim-cadastro-grid" style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:16}}>
           <div style={surface()}>
             <div style={{fontWeight:700,marginBottom:14,fontSize:14,fontFamily:T.fontDisplay||"inherit",letterSpacing:"-0.01em",color:T.accent}}>Nova Natureza do Gasto</div>
             <div style={{display:"flex",flexDirection:"column",gap:10}}>
@@ -3189,7 +3414,7 @@ function MH({title,onClose,T}) {
     </div>
   );
 }
-function G2({children}) { return <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:14,marginBottom:14}}>{children}</div>; }
+function G2({children}) { return <div className="rbim-g2-responsive" style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:14,marginBottom:14}}>{children}</div>; }
 function FR({children}) { return <div style={{marginBottom:14}}>{children}</div>; }
 
 // ─── MODAL CUSTO ──────────────────────────────────────────────────────────────
