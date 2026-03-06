@@ -1,3 +1,5 @@
+/** @jsxRuntime classic */
+/** @jsx React.createElement */
 import React, { useState, useMemo, useEffect, useCallback, useRef, createContext, useContext } from "react";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, LineChart, Line, CartesianGrid } from "recharts";
 
@@ -43,6 +45,21 @@ const mapReceita    = r => ({ id:r.id, data:r.data, obra:r.obra, banco:r.banco, 
 const mapOrcamento  = r => ({ id:r.id, obra:r.obra, categoria:r.categoria, subcategoria:r.subcategoria, tipo:r.tipo, natureza:r.natureza, valorOrcado:Number(r.valor_orcado) });
 const mapApagar     = r => ({ id:r.id, obra:r.obra, descricao:r.descricao, categoria:r.categoria, subcategoria:r.subcategoria, tipo:r.tipo, natureza:r.natureza, valor:Number(r.valor), vencimento:r.vencimento, fornecedor:r.fornecedor, pagador:r.pagador, banco:r.banco, pago:r.pago, dataPago:r.data_pago });
 
+// ─── RESPONSIVE HOOK ──────────────────────────────────────────────────────────
+function useIsMobile(breakpoint = 768) {
+  const [isMobile, setIsMobile] = useState(() =>
+    typeof window !== "undefined" ? window.innerWidth < breakpoint : false
+  );
+  useEffect(() => {
+    const mq = window.matchMedia(`(max-width: ${breakpoint - 1}px)`);
+    const handler = (e) => setIsMobile(e.matches);
+    mq.addEventListener("change", handler);
+    setIsMobile(mq.matches);
+    return () => mq.removeEventListener("change", handler);
+  }, [breakpoint]);
+  return isMobile;
+}
+
 // ─── THEME ────────────────────────────────────────────────────────────────────
 const ThemeCtx = createContext();
 const useTheme = () => useContext(ThemeCtx);
@@ -54,6 +71,14 @@ if (typeof document !== "undefined" && !document.getElementById("rbim-fonts")) {
   link.rel = "stylesheet";
   link.href = "https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&display=swap";
   document.head.appendChild(link);
+
+  // viewport meta for mobile
+  if (!document.querySelector('meta[name="viewport"]')) {
+    const meta = document.createElement("meta");
+    meta.name = "viewport";
+    meta.content = "width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no";
+    document.head.appendChild(meta);
+  }
 }
 
 const DARK = {
@@ -137,6 +162,70 @@ const SEED_CATS = [
   {id:13,nome:"REVESTIMENTO",subs:["CERÂMICA","PORCELANATO","AZULEJO","OUTROS"]},
   {id:14,nome:"LOGISTICA",subs:["FRETE","COMBUSTÍVEL","HOSPEDAGEM","ALIMENTAÇÃO"]},
 ];
+// ─── ÍCONES POR CATEGORIA ────────────────────────────────────────────────────
+const CAT_ICONS = {
+  "SERVIÇOS PRELIMINARES": "🔧",
+  "ESTRUTURA":             "🏗️",
+  "COBERTURA":             "🏠",
+  "ALVENARIA":             "🧱",
+  "MÃO DE OBRA":           "👷",
+  "PISO":                  "🪵",
+  "INSTALAÇÃO HIDRO":      "🚿",
+  "INSTALAÇÃO ELÉTRICA":   "⚡",
+  "PINTURA":               "🎨",
+  "ACABAMENTOS":           "✨",
+  "CUSTOS INDIRETOS":      "📦",
+  "CUSTOS ADMINISTRATIVOS":"📋",
+  "REVESTIMENTO":          "🪟",
+  "LOGISTICA":             "🚚",
+};
+const CAT_COLORS = {
+  "SERVIÇOS PRELIMINARES": "#06B6D4",
+  "ESTRUTURA":             "#F97316",
+  "COBERTURA":             "#8B5CF6",
+  "ALVENARIA":             "#EF4444",
+  "MÃO DE OBRA":           "#F59E0B",
+  "PISO":                  "#D97706",
+  "INSTALAÇÃO HIDRO":      "#10B981",
+  "INSTALAÇÃO ELÉTRICA":   "#FBBF24",
+  "PINTURA":               "#EC4899",
+  "ACABAMENTOS":           "#14B8A6",
+  "CUSTOS INDIRETOS":      "#6366F1",
+  "CUSTOS ADMINISTRATIVOS":"#0EA5E9",
+  "REVESTIMENTO":          "#84CC16",
+  "LOGISTICA":             "#E11D48",
+};
+// auto-fill tipo+natureza por subcategoria (baseado no template padrão)
+const SUB_AUTOFILL = {
+  "SALARIO":       {tipo:"Direto",        natureza:"Mão de Obra"},
+  "EMPREITA":      {tipo:"Direto",        natureza:"Mão de Obra"},
+  "AJUDANTE":      {tipo:"Direto",        natureza:"Mão de Obra"},
+  "PEDREIRO":      {tipo:"Direto",        natureza:"Mão de Obra"},
+  "TELHAS":        {tipo:"Direto",        natureza:"Material"},
+  "FERRAGEM":      {tipo:"Direto",        natureza:"Material"},
+  "MADEIRA":       {tipo:"Direto",        natureza:"Material"},
+  "TINTA":         {tipo:"Direto",        natureza:"Material"},
+  "MASSA CORRIDA": {tipo:"Direto",        natureza:"Material"},
+  "CERÂMICA":      {tipo:"Direto",        natureza:"Material"},
+  "PORCELANATO":   {tipo:"Direto",        natureza:"Material"},
+  "TIJOLO":        {tipo:"Direto",        natureza:"Material"},
+  "ARGAMASSA":     {tipo:"Direto",        natureza:"Material"},
+  "FIAÇÃO":        {tipo:"Direto",        natureza:"Material"},
+  "ART":           {tipo:"Administrativo",natureza:"Material"},
+  "DOCUMENTAÇÃO":  {tipo:"Administrativo",natureza:"Material"},
+  "CARTÓRIO":      {tipo:"Administrativo",natureza:"Material"},
+  "HOSPEDAGEM":    {tipo:"Indireto (BDI)",natureza:"Material"},
+  "ALIMENTAÇÃO":   {tipo:"Indireto (BDI)",natureza:"Material"},
+  "COMBUSTÍVEL":   {tipo:"Indireto (BDI)",natureza:"Material"},
+  "ANDAIME":       {tipo:"Indireto (BDI)",natureza:"Equipamento"},
+  "FERRAMENTAS":   {tipo:"Indireto (BDI)",natureza:"Equipamento"},
+  "BETONEIRA":     {tipo:"Indireto (BDI)",natureza:"Equipamento"},
+  "CONCRETAGEM":   {tipo:"Direto",        natureza:"Mão de Obra"},
+  "ESGOTO":        {tipo:"Direto",        natureza:"Material"},
+  "ÁGUA FRIA":     {tipo:"Direto",        natureza:"Material"},
+  "FRETE":         {tipo:"Indireto (BDI)",natureza:"Material"},
+};
+
 const TIPOS_CUSTO = ["Direto","Indireto (BDI)","Administrativo","Investimento"];
 const NATUREZAS = ["Mão de Obra","Material","Equipamento"];
 const STATUS_OBRA = ["Planejada","Em andamento","Pausada","Concluída"];
@@ -498,6 +587,9 @@ function CurrencyInput({ value, onChange, label, required, inputStyle, labelStyl
 export default function App() {
   const [dark, setDark] = useState(true);
   const T = dark ? DARK : LIGHT;
+  const isMobile = useIsMobile();
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [quickCostOpen, setQuickCostOpen] = useState(false);
 
   // ── Estado — começa vazio, carregado do Supabase ──────────────────────────
   const [obras,    setObras]    = useState([]);
@@ -573,6 +665,51 @@ export default function App() {
   // ordenação custos: {col: string, dir: "asc"|"desc"}
   const [fcSort,setFcSort] = useState({col:"data",dir:"desc"});
   const toggleSort = (col) => setFcSort(prev => prev.col===col ? {col,dir:prev.dir==="asc"?"desc":"asc"} : {col,dir:"asc"});
+  // seleção em massa + agrupamento
+  const [selectedIds, setSelectedIds] = useState(new Set());
+  const [fcGroupBy, setFcGroupBy] = useState("none"); // "none"|"obra"|"categoria"|"mes"
+  const [bulkField, setBulkField] = useState(""); // campo a editar em massa
+  const [bulkValue, setBulkValue] = useState(""); // novo valor
+  const [bulkSub, setBulkSub] = useState(""); // subcategoria when changing categoria
+  const toggleSelect = (id) => setSelectedIds(prev => { const n = new Set(prev); n.has(id)?n.delete(id):n.add(id); return n; });
+  const selectAll = (ids) => setSelectedIds(new Set(ids));
+  const clearSelection = () => setSelectedIds(new Set());
+
+  // bulk edit handler
+  const applyBulkEdit = async () => {
+    if (selectedIds.size === 0 || !bulkField || bulkValue === "") return;
+    const updates = {};
+    if (bulkField === "categoria") {
+      updates.categoria = bulkValue;
+      if (bulkSub) updates.subcategoria = bulkSub;
+      // auto-fill tipo/natureza from template if possible
+      const tpl = DEFAULT_BUDGET_TEMPLATE.find(e => e.etapa === bulkValue);
+      if (tpl && bulkSub) {
+        const item = tpl.itens.find(i => i.subcategoria === bulkSub);
+        if (item) { updates.tipo = item.tipo; updates.natureza = item.natureza; }
+      }
+    } else {
+      updates[bulkField] = bulkValue;
+    }
+    // apply to supabase and local state
+    const ids = [...selectedIds];
+    await Promise.all(ids.map(id => sbFetch("custos", { method: "PATCH", id, body: updates })));
+    setCustos(prev => prev.map(c => selectedIds.has(c.id) ? { ...c, ...updates } : c));
+    clearSelection();
+    setBulkField("");
+    setBulkValue("");
+    setBulkSub("");
+  };
+
+  // bulk delete handler
+  const applyBulkDelete = async () => {
+    if (selectedIds.size === 0) return;
+    if (!window.confirm(`Excluir ${selectedIds.size} lançamento(s) selecionados?`)) return;
+    const ids = [...selectedIds];
+    await Promise.all(ids.map(id => sbFetch("custos", { method: "DELETE", id })));
+    setCustos(prev => prev.filter(c => !selectedIds.has(c.id)));
+    clearSelection();
+  };
 
   const obrasNames = ["TODAS",...obras.map(o=>o.nome)];
   const mesesList = ["TODOS",...Array.from(new Set(custos.map(d=>getMes(d.data)).filter(Boolean))).sort()];
@@ -750,6 +887,50 @@ export default function App() {
         ::-webkit-scrollbar-thumb { background: rgba(128,128,128,0.2); border-radius: 99px; }
         ::-webkit-scrollbar-thumb:hover { background: rgba(128,128,128,0.35); }
         button:active { transform: scale(0.97); }
+
+        @media (max-width: 767px) {
+          .rbim-header-tabs { display: none !important; }
+          .rbim-header-actions { display: none !important; }
+          .rbim-mobile-tabs { display: flex !important; }
+          .rbim-mobile-fab { display: flex !important; }
+          .rbim-g2-responsive { grid-template-columns: 1fr !important; }
+          .rbim-grid5 { grid-template-columns: repeat(2, 1fr) !important; }
+          .rbim-grid2-charts { grid-template-columns: 1fr !important; }
+          .rbim-kpi-row { flex-direction: column !important; }
+          .rbim-kpi-row > div { min-width: 100% !important; }
+          .rbim-filter-row { flex-direction: column !important; }
+          .rbim-filter-row > div { width: 100% !important; min-width: 100% !important; }
+          .rbim-filter-row select { width: 100% !important; }
+          .rbim-filter-row input { width: 100% !important; }
+          .rbim-cadastro-grid { grid-template-columns: 1fr !important; }
+          .rbim-obra-card-grid { grid-template-columns: repeat(2, 1fr) !important; }
+          .rbim-obra-card-header { flex-direction: column !important; align-items: flex-start !important; gap: 8px !important; }
+          .rbim-apagar-card { flex-direction: column !important; align-items: flex-start !important; gap: 10px !important; }
+          .rbim-apagar-card > div:nth-child(2) { text-align: left !important; }
+          .rbim-apagar-card > div:nth-child(3) { text-align: left !important; }
+          .rbim-apagar-card > button { width: 100% !important; }
+          .rbim-bancos-row { flex-direction: column !important; }
+          .rbim-bancos-row > div { min-width: 100% !important; }
+          .rbim-modal-inner { max-width: 100% !important; border-radius: 0 !important; max-height: 100vh !important; height: 100vh !important; padding: 20px 16px !important; }
+          .rbim-modal-overlay { padding: 0 !important; }
+          .rbim-content-wrapper { padding: 16px 12px 100px 12px !important; }
+          .rbim-header-inner { padding: 0 12px !important; }
+          .rbim-budget-toolbar { flex-direction: column !important; gap: 8px !important; }
+          .rbim-budget-toolbar > div { width: 100% !important; }
+          .rbim-orc-kpis { flex-direction: column !important; }
+          .rbim-orc-kpis > div { min-width: 100% !important; }
+          .rbim-dash-header { flex-direction: column !important; align-items: flex-start !important; gap: 10px !important; }
+          .rbim-dash-filters { flex-direction: column !important; width: 100% !important; }
+          .rbim-dash-filters > div { width: 100% !important; }
+          .rbim-dash-filters select { width: 100% !important; }
+          .rbim-sub-tabs { overflow-x: auto !important; flex-wrap: nowrap !important; -webkit-overflow-scrolling: touch; }
+          .rbim-sub-tabs > button { flex-shrink: 0 !important; }
+        }
+
+        @media (min-width: 768px) {
+          .rbim-mobile-tabs { display: none !important; }
+          .rbim-mobile-fab { display: none !important; }
+        }
       `}</style>
 
       {/* ── DB STATUS BANNER ──────────────────────────────────────────────── */}
@@ -777,15 +958,15 @@ export default function App() {
         backdropFilter: "blur(20px)",
         WebkitBackdropFilter: "blur(20px)",
         borderBottom: `1px solid ${T.border}`,
-        padding: "0 32px",
       }}>
-        <div style={{
+        <div className="rbim-header-inner" style={{
           display: "flex",
           alignItems: "center",
           justifyContent: "space-between",
           height: 64,
           maxWidth: 1600,
           margin: "0 auto",
+          padding: "0 32px",
         }}>
           <div style={{display:"flex",alignItems:"center",gap:12}}>
             <div style={{
@@ -810,7 +991,8 @@ export default function App() {
             </div>
           </div>
 
-          <div style={{display:"flex",gap:2,alignItems:"center"}}>
+          {/* Desktop tabs */}
+          <div className="rbim-header-tabs" style={{display:"flex",gap:2,alignItems:"center"}}>
             {TABS.map(({id,label,icon,badge})=>(
               <button key={id} onClick={()=>setTab(id)} style={{
                 padding: "6px 14px",
@@ -849,17 +1031,79 @@ export default function App() {
             ))}
           </div>
 
-          <div style={{display:"flex",gap:8,alignItems:"center"}}>
+          {/* Desktop actions */}
+          <div className="rbim-header-actions" style={{display:"flex",gap:8,alignItems:"center"}}>
             <button onClick={()=>openModal("custo")} style={{...btnPrimary, padding:"7px 16px", fontSize:12}}>+ Custo</button>
             <button onClick={()=>openModal("receita")} style={{...btnPrimary, background:`linear-gradient(135deg,${T.success},${T.success}cc)`, boxShadow:`0 2px 12px ${T.success}44`, padding:"7px 16px", fontSize:12}}>+ Receita</button>
             <button onClick={()=>openModal("apagar_new")} style={{...btnPrimary, background:`linear-gradient(135deg,${T.danger},${T.danger}cc)`, boxShadow:`0 2px 12px ${T.danger}44`, padding:"7px 16px", fontSize:12}}>+ A Pagar</button>
             <button onClick={()=>setDark(d=>!d)} style={{...btnGhost,fontSize:15,padding:"7px 10px",borderRadius:8,width:36,height:36,display:"flex",alignItems:"center",justifyContent:"center"}} title="Alternar tema">{dark?"☀️":"🌙"}</button>
           </div>
+
+          {/* Mobile: theme toggle + hamburger */}
+          <div className="rbim-mobile-tabs" style={{display:"none",gap:8,alignItems:"center"}}>
+            <button onClick={()=>setDark(d=>!d)} style={{...btnGhost,fontSize:15,padding:"7px 10px",borderRadius:8,width:36,height:36,display:"flex",alignItems:"center",justifyContent:"center"}} title="Alternar tema">{dark?"☀️":"🌙"}</button>
+            <button onClick={()=>setMobileMenuOpen(!mobileMenuOpen)} style={{
+              background:"transparent",border:`1px solid ${T.border2}`,
+              color:T.text,borderRadius:8,width:40,height:40,
+              display:"flex",alignItems:"center",justifyContent:"center",
+              cursor:"pointer",fontSize:18,fontFamily:"inherit",
+            }}>
+              {mobileMenuOpen ? "✕" : "☰"}
+            </button>
+          </div>
         </div>
+
+        {/* Mobile dropdown menu */}
+        {mobileMenuOpen && (
+          <div style={{
+            background: dark ? "rgba(8,12,20,0.97)" : "rgba(240,244,250,0.97)",
+            backdropFilter:"blur(20px)",WebkitBackdropFilter:"blur(20px)",
+            borderTop: `1px solid ${T.border}`,
+            padding: "12px 16px",
+            display: "flex",
+            flexDirection: "column",
+            gap: 4,
+          }}>
+            {TABS.map(({id,label,icon,badge})=>(
+              <button key={id} onClick={()=>{setTab(id);setMobileMenuOpen(false);}} style={{
+                padding: "12px 16px",
+                border: "none",
+                cursor: "pointer",
+                fontWeight: tab===id ? 700 : 400,
+                fontSize: 14,
+                fontFamily: T.fontFamily,
+                transition: "all 0.15s",
+                background: tab===id ? T.accent + "18" : "transparent",
+                color: tab===id ? T.accent : T.text2,
+                borderRadius: 10,
+                display: "flex",
+                alignItems: "center",
+                gap: 10,
+                textAlign: "left",
+                position:"relative",
+              }}>
+                <span style={{fontSize: 14, opacity: 0.7, width:20, textAlign:"center"}}>{icon}</span>
+                {label}
+                {badge>0 && (
+                  <span style={{
+                    background: T.danger, color: "#fff", borderRadius: 999,
+                    fontSize: 9, padding: "2px 6px", fontWeight: 700,
+                    marginLeft: "auto",
+                  }}>{badge}</span>
+                )}
+              </button>
+            ))}
+            <div style={{borderTop:`1px solid ${T.border}`,marginTop:4,paddingTop:8,display:"flex",gap:8}}>
+              <button onClick={()=>{openModal("custo");setMobileMenuOpen(false);}} style={{...btnPrimary,flex:1,fontSize:12,textAlign:"center",padding:"10px 12px"}}>+ Custo</button>
+              <button onClick={()=>{openModal("receita");setMobileMenuOpen(false);}} style={{...btnPrimary,flex:1,background:`linear-gradient(135deg,${T.success},${T.success}cc)`,boxShadow:`0 2px 12px ${T.success}44`,fontSize:12,textAlign:"center",padding:"10px 12px"}}>+ Receita</button>
+              <button onClick={()=>{openModal("apagar_new");setMobileMenuOpen(false);}} style={{...btnPrimary,flex:1,background:`linear-gradient(135deg,${T.danger},${T.danger}cc)`,boxShadow:`0 2px 12px ${T.danger}44`,fontSize:12,textAlign:"center",padding:"10px 12px"}}>+ A Pagar</button>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* ── PAGE CONTENT WRAPPER ──────────────────────────────────────────── */}
-      <div style={{maxWidth: 1600, margin: "0 auto", padding: "28px 32px"}}>
+      <div className="rbim-content-wrapper" style={{maxWidth: 1600, margin: "0 auto", padding: "28px 32px"}}>
 
       {/* ════ VISÃO GERAL ════════════════════════════════════════════════════ */}
       {tab==="visao" && (
@@ -892,7 +1136,7 @@ export default function App() {
           <div style={{display:"flex",flexDirection:"column",gap:12}}>
             {obrasMetrica.map(o=>(
               <div key={o.id} style={{...surface({padding:"24px 28px",border:`1px solid ${o.lucro<0?T.danger+"33":T.border}`,borderLeft:`3px solid ${o.lucro<0?T.danger:T.success}`})}}>
-                <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:14}}>
+                <div className="rbim-obra-card-header" style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:14}}>
                   <div>
                     <div style={{fontWeight:700,fontSize:17,fontFamily:T.fontDisplay||"inherit",letterSpacing:"-0.02em"}}>{o.nome}</div>
                     <div style={{fontSize:11,color:T.text3,marginTop:4,display:"flex",gap:6,alignItems:"center"}}>
@@ -906,7 +1150,7 @@ export default function App() {
                     <button onClick={()=>openModal("obra_edit",o)} style={btnGhost}>✏️ Editar</button>
                   </div>
                 </div>
-                <div style={{display:"grid",gridTemplateColumns:"repeat(5,1fr)",gap:10,marginBottom:16}}>
+                <div className="rbim-obra-card-grid" style={{display:"grid",gridTemplateColumns:"repeat(5,1fr)",gap:10,marginBottom:16}}>
                   {[["Contrato",fmt(o.contrato),T.text],["Orçado",fmt(o.orc),T.info],["Gasto",fmt(o.gasto),T.danger],["Recebido",fmt(o.rec),T.success],["Lucro Esperado",fmt(o.lucro),o.lucro>=0?T.success:T.danger]].map(([l,v,c])=>(
                     <div key={l} style={{background:T.surface2,borderRadius:10,padding:"12px 14px",border:`1px solid ${T.border}`}}>
                       <div style={{fontSize:9,color:T.text3,marginBottom:4,textTransform:"uppercase",letterSpacing:"0.07em",fontWeight:600}}>{l}</div>
@@ -929,131 +1173,29 @@ export default function App() {
 
       {/* ════ CUSTOS ABA ═════════════════════════════════════════════════════ */}
       {tab==="custos_aba" && (
-        <div>
-          <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:12}}>
-            <div style={{fontWeight:700,fontSize:16,fontFamily:T.fontDisplay||"inherit",letterSpacing:"-0.01em"}}>Lançamentos de Custos</div>
-            <button onClick={()=>openModal("custo")} style={btnPrimary}>+ Novo Custo</button>
-          </div>
-          <div style={{...surface({padding:"16px 20px",marginBottom:14}),display:"flex",gap:12,flexWrap:"wrap",alignItems:"flex-end"}}>
-            {[["Obra",fcObra,setFcObra,obrasNames],["Categoria",fcCat,setFcCat,catsNames]].map(([lbl,val,set,opts])=>(
-              <div key={lbl} style={{display:"flex",flexDirection:"column",gap:3}}>
-                <label style={labelStyle}>{lbl}</label>
-                <select value={val} onChange={e=>set(e.target.value)} style={{...inputStyle,width:140}}>
-                  {opts.map(o=><option key={o}>{o}</option>)}
-                </select>
-              </div>
-            ))}
-            <div style={{display:"flex",flexDirection:"column",gap:3,flex:1,minWidth:160}}>
-              <label style={labelStyle}>Buscar</label>
-              <input value={fcSearch} onChange={e=>setFcSearch(e.target.value)} placeholder="Descrição ou fornecedor..." style={inputStyle}/>
-            </div>
-          </div>
-          {(()=>{
-            const COLS = [
-              {key:"data",    label:"Data"},
-              {key:"obra",    label:"Obra"},
-              {key:"banco",   label:"Banco"},
-              {key:"fornecedor",label:"Fornecedor"},
-              {key:"categoria",label:"Categoria"},
-              {key:"subcategoria",label:"Subcategoria"},
-              {key:"tipo",    label:"Tipo"},
-              {key:"natureza",label:"Natureza"},
-              {key:"obs",     label:"Descrição"},
-              {key:"valor",   label:"Valor"},
-              {key:"_actions",label:""},
-            ];
-            const sortedRows = [...filtCustosAba].sort((a,b)=>{
-              const {col,dir} = fcSort;
-              const m = dir==="asc" ? 1 : -1;
-              if(col==="data") return m*(new Date(a.data)-new Date(b.data));
-              if(col==="valor") return m*((a.valor||0)-(b.valor||0));
-              const va=(a[col]||"").toString().toLowerCase();
-              const vb=(b[col]||"").toString().toLowerCase();
-              return m*(va<vb?-1:va>vb?1:0);
-            });
-            const SortIcon = ({col}) => {
-              if(fcSort.col!==col) return <span style={{opacity:0.25,marginLeft:3,fontSize:9}}>⇅</span>;
-              return <span style={{marginLeft:3,fontSize:9,color:T.accent}}>{fcSort.dir==="asc"?"↑":"↓"}</span>;
-            };
-            return (
-              <div style={surface({padding:0,overflow:"hidden"})}>
-                <div style={{padding:"14px 20px",borderBottom:`1px solid ${T.border}`,display:"flex",justifyContent:"space-between",alignItems:"center"}}>
-                  <span style={{fontWeight:600,fontSize:13}}>{filtCustosAba.length} registros · <span style={{color:T.accent,fontWeight:700}}>{fmt(filtCustosAba.reduce((s,d)=>s+d.valor,0))}</span></span>
-                  <span style={{fontSize:11,color:T.text3}}>Clique no cabeçalho para ordenar</span>
-                </div>
-                <div style={{overflowX:"auto",maxHeight:540,overflowY:"auto"}}>
-                  <table style={{width:"100%",borderCollapse:"collapse",fontSize:11}}>
-                    <thead style={{position:"sticky",top:0,background:T.surfaceSolid||T.surface2,zIndex:1}}>
-                      <tr>{COLS.map(({key,label})=>(
-                        <th key={key}
-                          onClick={key!=="_actions" ? ()=>toggleSort(key) : undefined}
-                          style={{
-                            padding:"10px 12px",textAlign:key==="valor"?"right":"left",
-                            color:fcSort.col===key?T.accent:T.text3,
-                            fontWeight:600,fontSize:10,
-                            borderBottom:`1px solid ${T.border}`,
-                            whiteSpace:"nowrap",
-                            letterSpacing:"0.06em",
-                            textTransform:"uppercase",
-                            cursor:key!=="_actions"?"pointer":"default",
-                            userSelect:"none",
-                            transition:"color 0.15s",
-                            background: fcSort.col===key ? T.accent+"0A" : "transparent",
-                          }}
-                        >{label}{key!=="_actions" && <SortIcon col={key}/>}</th>
-                      ))}</tr>
-                    </thead>
-                    <tbody>{sortedRows.map((d,i)=>(
-                      <tr key={d.id??i} style={{borderBottom:`1px solid ${T.border}`,background:i%2===0?"transparent":T.rowAlt,transition:"background 0.1s"}}
-                        onMouseEnter={e=>e.currentTarget.style.background=T.accent+"08"}
-                        onMouseLeave={e=>e.currentTarget.style.background=i%2===0?"transparent":T.rowAlt}
-                      >
-                        <td style={{padding:"9px 12px",color:T.text3,whiteSpace:"nowrap"}}>{d.data}</td>
-                        <td style={{padding:"9px 12px",fontWeight:600,whiteSpace:"nowrap"}}>{d.obra}</td>
-                        <td style={{padding:"9px 12px",color:T.text3}}>{d.banco}</td>
-                        <td style={{padding:"9px 12px"}}>{d.fornecedor||"—"}</td>
-                        <td style={{padding:"9px 12px",color:T.accent2,fontSize:10}}>{d.categoria}</td>
-                        <td style={{padding:"9px 12px",color:T.text3,fontSize:10}}>{d.subcategoria}</td>
-                        <td style={{padding:"9px 12px"}}><span style={{background:T.info+"18",color:T.info,padding:"2px 8px",borderRadius:6,fontSize:9,fontWeight:600,letterSpacing:"0.04em"}}>{d.tipo}</span></td>
-                        <td style={{padding:"9px 12px"}}><span style={{background:T.accent+"18",color:T.accent,padding:"2px 8px",borderRadius:6,fontSize:9,fontWeight:600,letterSpacing:"0.04em"}}>{d.natureza}</span></td>
-                        <td style={{padding:"9px 12px",color:T.text2,maxWidth:160,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{d.obs}</td>
-                        <td style={{padding:"9px 12px",fontWeight:700,color:T.accent,textAlign:"right",whiteSpace:"nowrap"}}>{fmt(d.valor)}</td>
-                        <td style={{padding:"9px 12px",whiteSpace:"nowrap"}}>
-                          <div style={{display:"flex",gap:5}}>
-                            <button
-                              onClick={()=>openModal("custo_edit",d)}
-                              title="Editar"
-                              style={{
-                                background:"transparent",border:`1px solid ${T.border2}`,
-                                color:T.text2,borderRadius:6,padding:"4px 9px",
-                                cursor:"pointer",fontSize:11,fontFamily:T.fontFamily||"inherit",
-                                transition:"all 0.12s",lineHeight:1,
-                              }}
-                              onMouseEnter={e=>{e.currentTarget.style.background=T.accent+"18";e.currentTarget.style.color=T.accent;e.currentTarget.style.borderColor=T.accent+"66";}}
-                              onMouseLeave={e=>{e.currentTarget.style.background="transparent";e.currentTarget.style.color=T.text2;e.currentTarget.style.borderColor=T.border2;}}
-                            >✏</button>
-                            <button
-                              onClick={async ()=>{ if(window.confirm(`Excluir "${d.obs||d.categoria}" (${fmt(d.valor)})?`)){ await sbFetch("custos",{method:"DELETE",id:d.id}); setCustos(prev=>prev.filter(c=>c.id!==d.id)); } }}
-                              title="Excluir"
-                              style={{
-                                background:"transparent",border:`1px solid ${T.border2}`,
-                                color:T.text3,borderRadius:6,padding:"4px 9px",
-                                cursor:"pointer",fontSize:11,fontFamily:T.fontFamily||"inherit",
-                                transition:"all 0.12s",lineHeight:1,
-                              }}
-                              onMouseEnter={e=>{e.currentTarget.style.background=T.danger+"18";e.currentTarget.style.color=T.danger;e.currentTarget.style.borderColor=T.danger+"66";}}
-                              onMouseLeave={e=>{e.currentTarget.style.background="transparent";e.currentTarget.style.color=T.text3;e.currentTarget.style.borderColor=T.border2;}}
-                            >✕</button>
-                          </div>
-                        </td>
-                      </tr>
-                    ))}</tbody>
-                  </table>
-                </div>
-              </div>
-            );
-          })()}
-        </div>
+        <CustosAba
+          T={T} dark={dark}
+          custos={filtCustosAba}
+          allCustos={custos}
+          setCustos={setCustos}
+          obras={obras} bancos={bancos} cats={cats}
+          fcObra={fcObra} setFcObra={setFcObra}
+          fcCat={fcCat} setFcCat={setFcCat}
+          fcSearch={fcSearch} setFcSearch={setFcSearch}
+          fcSort={fcSort} toggleSort={toggleSort}
+          fcGroupBy={fcGroupBy} setFcGroupBy={setFcGroupBy}
+          selectedIds={selectedIds} toggleSelect={toggleSelect}
+          selectAll={selectAll} clearSelection={clearSelection}
+          bulkField={bulkField} setBulkField={setBulkField}
+          bulkValue={bulkValue} setBulkValue={setBulkValue}
+          bulkSub={bulkSub} setBulkSub={setBulkSub}
+          applyBulkEdit={applyBulkEdit}
+          applyBulkDelete={applyBulkDelete}
+          obrasNames={obrasNames} catsNames={catsNames}
+          openModal={openModal}
+          surface={surface} inputStyle={inputStyle}
+          labelStyle={labelStyle} btnPrimary={btnPrimary} btnGhost={btnGhost}
+        />
       )}
 
       {/* ════ RECEITAS — DASHBOARD FINANCEIRO ══════════════════════════════════ */}
@@ -1096,7 +1238,7 @@ export default function App() {
       {/* ════ A PAGAR ════════════════════════════════════════════════════════ */}
       {tab==="apagar_aba" && (
         <div>
-          <div style={{display:"flex",gap:10,marginBottom:14,flexWrap:"wrap"}}>
+          <div className="rbim-kpi-row" style={{display:"flex",gap:10,marginBottom:14,flexWrap:"wrap"}}>
             {[["A Pagar",fmt(totalApagar),`${apagarPend.length} pendentes`,T.danger],["Vencidas",fmt(vencidas.reduce((s,a)=>s+a.valor,0)),`${vencidas.length} contas`,T.danger],["Venc. 7d",fmt(vencendo.reduce((s,a)=>s+a.valor,0)),`${vencendo.length} contas`,T.accent2],["Pagas",fmt(apagar.filter(a=>a.pago).reduce((s,a)=>s+a.valor,0)),"movidas p/ custos",T.success]].map(([l,v,s,c])=>(
               <div key={l} style={{...surface({padding:"20px 22px"}),flex:1,minWidth:140}}>
                 <div style={{fontSize:10,color:T.text3,textTransform:"uppercase",letterSpacing:"0.08em",marginBottom:6,fontWeight:600}}>{l}</div>
@@ -1116,7 +1258,7 @@ export default function App() {
               const diff=Math.ceil((new Date(item.vencimento)-hoje)/86400000);
               const isV=diff<0,isU=diff>=0&&diff<=7;
               return (
-                <div key={item.id} style={{...surface({border:`1px solid ${isV?T.danger:isU?T.accent2:T.border}`}),display:"flex",justifyContent:"space-between",alignItems:"center",gap:12,flexWrap:"wrap"}}>
+                <div key={item.id} className="rbim-apagar-card" style={{...surface({border:`1px solid ${isV?T.danger:isU?T.accent2:T.border}`}),display:"flex",justifyContent:"space-between",alignItems:"center",gap:12,flexWrap:"wrap"}}>
                   <div style={{flex:1,minWidth:200}}>
                     <div style={{fontWeight:800,fontSize:13}}>{item.descricao}</div>
                     <div style={{fontSize:11,color:T.text2,marginTop:3}}>{item.obra} · {item.categoria} · {item.subcategoria}</div>
@@ -1156,9 +1298,9 @@ export default function App() {
 
       {/* ════ MODAIS ═════════════════════════════════════════════════════════ */}
       {modal && (
-        <div onClick={closeModal} style={{position:"fixed",inset:0,background:dark?"rgba(0,0,0,0.7)":"rgba(0,0,0,0.35)",backdropFilter:"blur(8px)",WebkitBackdropFilter:"blur(8px)",zIndex:999,display:"flex",alignItems:"center",justifyContent:"center",padding:20}}>
-          <div onClick={e=>e.stopPropagation()} style={{background:dark?"rgba(12,17,28,0.97)":"rgba(255,255,255,0.97)",backdropFilter:"blur(24px)",WebkitBackdropFilter:"blur(24px)",border:`1px solid ${T.border2}`,borderRadius:20,padding:28,width:"100%",maxWidth:580,maxHeight:"92vh",overflowY:"auto",color:T.text,fontFamily:T.fontFamily,boxShadow:T.shadowHover}}>
-            {modal==="custo" && <ModalCusto T={T} obras={obras} bancos={bancos} cats={cats}
+        <div className="rbim-modal-overlay" onClick={closeModal} style={{position:"fixed",inset:0,background:dark?"rgba(0,0,0,0.7)":"rgba(0,0,0,0.35)",backdropFilter:"blur(8px)",WebkitBackdropFilter:"blur(8px)",zIndex:999,display:"flex",alignItems:"center",justifyContent:"center",padding:20}}>
+          <div className="rbim-modal-inner" onClick={e=>e.stopPropagation()} style={{background:dark?"rgba(12,17,28,0.97)":"rgba(255,255,255,0.97)",backdropFilter:"blur(24px)",WebkitBackdropFilter:"blur(24px)",border:`1px solid ${T.border2}`,borderRadius:20,padding:28,width:"100%",maxWidth:580,maxHeight:"92vh",overflowY:"auto",color:T.text,fontFamily:T.fontFamily,boxShadow:T.shadowHover}}>
+            {modal==="custo" && <ModalCusto T={T} obras={obras} bancos={bancos} cats={cats} custos={custos}
               inputStyle={inputStyle} labelStyle={labelStyle} btnPrimary={btnPrimary}
               onClose={closeModal} initial={custoEditando} fornecedores={fornecedores}
               onSave={async d=>{
@@ -1208,8 +1350,453 @@ export default function App() {
         </div>
       )}
       </div>
+
+      {/* ════ MOBILE FAB — Atalho rápido para lançamento ════════════════════ */}
+      <div className="rbim-mobile-fab" style={{
+        display: "none",
+        position: "fixed",
+        bottom: 20,
+        right: 16,
+        left: 16,
+        zIndex: 90,
+        gap: 8,
+      }}>
+        {/* Mini actions */}
+        {quickCostOpen && (
+          <div style={{
+            position: "fixed", bottom: 76, right: 16, left: 16,
+            display: "flex", flexDirection: "column", gap: 6,
+            animation: "fadeUp 0.2s ease-out",
+          }}>
+            <style>{`@keyframes fadeUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}`}</style>
+            <button onClick={()=>{setQuickCostOpen(false);openModal("custo");}} style={{
+              padding: "14px 20px", borderRadius: 14,
+              background: dark ? "rgba(12,17,28,0.95)" : "rgba(255,255,255,0.95)",
+              backdropFilter: "blur(20px)", WebkitBackdropFilter: "blur(20px)",
+              border: `1px solid ${T.accent}44`,
+              color: T.accent, fontWeight: 700, fontSize: 14,
+              fontFamily: T.fontFamily, cursor: "pointer",
+              display: "flex", alignItems: "center", gap: 10,
+              boxShadow: T.shadowHover,
+            }}>
+              <span style={{fontSize:18}}>💸</span> Lançar Custo Completo
+            </button>
+            <button onClick={()=>{setQuickCostOpen(false);openModal("receita");}} style={{
+              padding: "14px 20px", borderRadius: 14,
+              background: dark ? "rgba(12,17,28,0.95)" : "rgba(255,255,255,0.95)",
+              backdropFilter: "blur(20px)", WebkitBackdropFilter: "blur(20px)",
+              border: `1px solid ${T.success}44`,
+              color: T.success, fontWeight: 700, fontSize: 14,
+              fontFamily: T.fontFamily, cursor: "pointer",
+              display: "flex", alignItems: "center", gap: 10,
+              boxShadow: T.shadowHover,
+            }}>
+              <span style={{fontSize:18}}>💚</span> Registrar Receita
+            </button>
+            <button onClick={()=>{setQuickCostOpen(false);openModal("apagar_new");}} style={{
+              padding: "14px 20px", borderRadius: 14,
+              background: dark ? "rgba(12,17,28,0.95)" : "rgba(255,255,255,0.95)",
+              backdropFilter: "blur(20px)", WebkitBackdropFilter: "blur(20px)",
+              border: `1px solid ${T.danger}44`,
+              color: T.danger, fontWeight: 700, fontSize: 14,
+              fontFamily: T.fontFamily, cursor: "pointer",
+              display: "flex", alignItems: "center", gap: 10,
+              boxShadow: T.shadowHover,
+            }}>
+              <span style={{fontSize:18}}>⏰</span> Conta a Pagar
+            </button>
+          </div>
+        )}
+
+        {/* Overlay to close */}
+        {quickCostOpen && (
+          <div onClick={()=>setQuickCostOpen(false)} style={{
+            position: "fixed", inset: 0, background: "rgba(0,0,0,0.4)",
+            zIndex: -1,
+          }}/>
+        )}
+
+        {/* Main FAB button */}
+        <button onClick={()=>setQuickCostOpen(!quickCostOpen)} style={{
+          width: "100%",
+          padding: "16px 24px",
+          borderRadius: 16,
+          border: "none",
+          cursor: "pointer",
+          fontWeight: 700,
+          fontSize: 15,
+          fontFamily: T.fontFamily,
+          color: "#fff",
+          background: quickCostOpen
+            ? `linear-gradient(135deg, ${T.text3}, ${T.text3}cc)`
+            : `linear-gradient(135deg, ${T.accent}, ${T.accent2})`,
+          boxShadow: `0 6px 24px ${quickCostOpen ? T.text3 : T.accent}55, 0 2px 8px rgba(0,0,0,0.2)`,
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          gap: 8,
+          transition: "all 0.2s",
+          letterSpacing: "0.01em",
+        }}>
+          <span style={{fontSize:18,transition:"transform 0.2s",transform:quickCostOpen?"rotate(45deg)":"rotate(0deg)",display:"inline-block"}}>+</span>
+          {quickCostOpen ? "Fechar" : "Novo Lançamento"}
+        </button>
+      </div>
     </div>
     </ThemeCtx.Provider>
+  );
+}
+
+// ─── CUSTOS ABA — COMPONENT ──────────────────────────────────────────────────
+function CustosAba({ T, dark, custos, allCustos, setCustos, obras, bancos, cats,
+  fcObra, setFcObra, fcCat, setFcCat, fcSearch, setFcSearch,
+  fcSort, toggleSort, fcGroupBy, setFcGroupBy,
+  selectedIds, toggleSelect, selectAll, clearSelection,
+  bulkField, setBulkField, bulkValue, setBulkValue,
+  bulkSub, setBulkSub, applyBulkEdit, applyBulkDelete,
+  obrasNames, catsNames, openModal,
+  surface, inputStyle, labelStyle, btnPrimary, btnGhost }) {
+
+  const [collapsedGroups, setCollapsedGroups] = useState(new Set());
+  const toggleGroup = (key) => setCollapsedGroups(prev => { const n = new Set(prev); n.has(key)?n.delete(key):n.add(key); return n; });
+
+  const COLS = [
+    {key:"_check",label:"",w:36},
+    {key:"data",label:"Data"},{key:"obra",label:"Obra"},{key:"banco",label:"Banco"},
+    {key:"fornecedor",label:"Fornecedor"},{key:"categoria",label:"Categoria"},
+    {key:"subcategoria",label:"Sub"},{key:"tipo",label:"Tipo"},
+    {key:"natureza",label:"Natureza"},{key:"obs",label:"Descrição"},
+    {key:"valor",label:"Valor"},{key:"_actions",label:""},
+  ];
+
+  const sortedRows = useMemo(() => [...custos].sort((a,b)=>{
+    const {col,dir} = fcSort;
+    const m = dir==="asc" ? 1 : -1;
+    if(col==="data") return m*(new Date(a.data)-new Date(b.data));
+    if(col==="valor") return m*((a.valor||0)-(b.valor||0));
+    const va=(a[col]||"").toString().toLowerCase();
+    const vb=(b[col]||"").toString().toLowerCase();
+    return m*(va<vb?-1:va>vb?1:0);
+  }), [custos, fcSort]);
+
+  // grouped data
+  const grouped = useMemo(() => {
+    if (fcGroupBy === "none") return null;
+    const m = {};
+    sortedRows.forEach(d => {
+      const key = fcGroupBy === "obra" ? d.obra
+        : fcGroupBy === "categoria" ? d.categoria
+        : fcGroupBy === "mes" ? getMes(d.data)
+        : "—";
+      if (!m[key]) m[key] = [];
+      m[key].push(d);
+    });
+    return Object.entries(m).sort((a,b) => a[0].localeCompare(b[0]));
+  }, [sortedRows, fcGroupBy]);
+
+  const allIds = sortedRows.map(d => d.id);
+  const allSelected = allIds.length > 0 && allIds.every(id => selectedIds.has(id));
+  const someSelected = selectedIds.size > 0;
+
+  const SortIcon = ({col}) => {
+    if(fcSort.col!==col) return <span style={{opacity:0.25,marginLeft:3,fontSize:9}}>⇅</span>;
+    return <span style={{marginLeft:3,fontSize:9,color:T.accent}}>{fcSort.dir==="asc"?"↑":"↓"}</span>;
+  };
+
+  // bulk edit field options
+  const BULK_FIELDS = [
+    {key:"",label:"-- campo --"},
+    {key:"data",label:"Data"},
+    {key:"obra",label:"Obra"},
+    {key:"banco",label:"Banco"},
+    {key:"categoria",label:"Categoria + Sub"},
+    {key:"tipo",label:"Tipo de Custo"},
+    {key:"natureza",label:"Natureza"},
+    {key:"pagador",label:"Pagador"},
+    {key:"fornecedor",label:"Fornecedor"},
+  ];
+
+  const bulkSubs = bulkField === "categoria" && bulkValue
+    ? (cats.find(c => c.nome === bulkValue)?.subs || [])
+    : [];
+
+  const renderBulkValueInput = () => {
+    if (!bulkField) return null;
+    const si = {...inputStyle, width: "auto", minWidth: 140};
+    switch(bulkField) {
+      case "data":
+        return <input type="date" value={bulkValue} onChange={e=>setBulkValue(e.target.value)} style={si}/>;
+      case "obra":
+        return <select value={bulkValue} onChange={e=>setBulkValue(e.target.value)} style={si}>
+          <option value="">-- selecione --</option>
+          {obras.map(o=><option key={o.id||o.nome}>{o.nome}</option>)}
+        </select>;
+      case "banco":
+        return <select value={bulkValue} onChange={e=>setBulkValue(e.target.value)} style={si}>
+          <option value="">-- selecione --</option>
+          {bancos.map(b=><option key={b.id||b.nome}>{b.nome}</option>)}
+        </select>;
+      case "categoria":
+        return <div style={{display:"flex",gap:6,alignItems:"center",flexWrap:"wrap"}}>
+          <select value={bulkValue} onChange={e=>{setBulkValue(e.target.value);setBulkSub("");}} style={si}>
+            <option value="">-- categoria --</option>
+            {cats.map(c=><option key={c.id}>{c.nome}</option>)}
+          </select>
+          {bulkSubs.length > 0 && (
+            <select value={bulkSub} onChange={e=>setBulkSub(e.target.value)} style={si}>
+              <option value="">-- sub --</option>
+              {bulkSubs.map(s=><option key={s}>{s}</option>)}
+            </select>
+          )}
+        </div>;
+      case "tipo":
+        return <select value={bulkValue} onChange={e=>setBulkValue(e.target.value)} style={si}>
+          <option value="">-- selecione --</option>
+          {TIPOS_CUSTO.map(t=><option key={t}>{t}</option>)}
+        </select>;
+      case "natureza":
+        return <select value={bulkValue} onChange={e=>setBulkValue(e.target.value)} style={si}>
+          <option value="">-- selecione --</option>
+          {NATUREZAS.map(n=><option key={n}>{n}</option>)}
+        </select>;
+      case "pagador":
+        return <select value={bulkValue} onChange={e=>setBulkValue(e.target.value)} style={si}>
+          <option value="">-- selecione --</option>
+          {["RBIM","JF"].map(p=><option key={p}>{p}</option>)}
+        </select>;
+      case "fornecedor":
+        return <input type="text" value={bulkValue} onChange={e=>setBulkValue(e.target.value)} placeholder="Nome do fornecedor..." style={si}/>;
+      default: return null;
+    }
+  };
+
+  const checkStyle = {
+    width: 16, height: 16, borderRadius: 4, cursor: "pointer",
+    accentColor: T.accent, margin: 0,
+  };
+
+  const renderRow = (d, i, groupKey) => {
+    const isSelected = selectedIds.has(d.id);
+    return (
+      <tr key={d.id??i} style={{
+        borderBottom:`1px solid ${T.border}`,
+        background: isSelected ? T.accent+"12" : i%2===0?"transparent":T.rowAlt,
+        transition:"background 0.1s",
+      }}
+        onMouseEnter={e=>{ if(!isSelected) e.currentTarget.style.background=T.accent+"08"; }}
+        onMouseLeave={e=>{ if(!isSelected) e.currentTarget.style.background=i%2===0?"transparent":T.rowAlt; }}
+      >
+        <td style={{padding:"9px 8px",textAlign:"center",width:36}}>
+          <input type="checkbox" checked={isSelected} onChange={()=>toggleSelect(d.id)} style={checkStyle}/>
+        </td>
+        <td style={{padding:"9px 10px",color:T.text3,whiteSpace:"nowrap",fontSize:11}}>{d.data}</td>
+        {fcGroupBy !== "obra" && <td style={{padding:"9px 10px",fontWeight:600,whiteSpace:"nowrap",fontSize:11}}>{d.obra}</td>}
+        <td style={{padding:"9px 10px",color:T.text3,fontSize:11}}>{d.banco}</td>
+        <td style={{padding:"9px 10px",fontSize:11}}>{d.fornecedor||"—"}</td>
+        {fcGroupBy !== "categoria" && <td style={{padding:"9px 10px",color:T.accent2,fontSize:10}}>{d.categoria}</td>}
+        <td style={{padding:"9px 10px",color:T.text3,fontSize:10}}>{d.subcategoria}</td>
+        <td style={{padding:"9px 10px"}}><span style={{background:T.info+"18",color:T.info,padding:"2px 7px",borderRadius:6,fontSize:9,fontWeight:600}}>{d.tipo}</span></td>
+        <td style={{padding:"9px 10px"}}><span style={{background:T.accent+"18",color:T.accent,padding:"2px 7px",borderRadius:6,fontSize:9,fontWeight:600}}>{d.natureza}</span></td>
+        <td style={{padding:"9px 10px",color:T.text2,maxWidth:150,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap",fontSize:11}}>{d.obs}</td>
+        <td style={{padding:"9px 10px",fontWeight:700,color:T.accent,textAlign:"right",whiteSpace:"nowrap",fontSize:11}}>{fmt(d.valor)}</td>
+        <td style={{padding:"9px 8px",whiteSpace:"nowrap"}}>
+          <div style={{display:"flex",gap:4}}>
+            <button onClick={()=>openModal("custo_edit",d)} title="Editar"
+              style={{background:"transparent",border:`1px solid ${T.border2}`,color:T.text2,borderRadius:6,padding:"3px 8px",cursor:"pointer",fontSize:10,fontFamily:T.fontFamily||"inherit",transition:"all 0.12s",lineHeight:1}}
+              onMouseEnter={e=>{e.currentTarget.style.background=T.accent+"18";e.currentTarget.style.color=T.accent;}}
+              onMouseLeave={e=>{e.currentTarget.style.background="transparent";e.currentTarget.style.color=T.text2;}}
+            >✏</button>
+            <button onClick={async ()=>{ if(window.confirm(`Excluir "${d.obs||d.categoria}" (${fmt(d.valor)})?`)){ await sbFetch("custos",{method:"DELETE",id:d.id}); setCustos(prev=>prev.filter(c=>c.id!==d.id)); }}} title="Excluir"
+              style={{background:"transparent",border:`1px solid ${T.border2}`,color:T.text3,borderRadius:6,padding:"3px 8px",cursor:"pointer",fontSize:10,fontFamily:T.fontFamily||"inherit",transition:"all 0.12s",lineHeight:1}}
+              onMouseEnter={e=>{e.currentTarget.style.background=T.danger+"18";e.currentTarget.style.color=T.danger;}}
+              onMouseLeave={e=>{e.currentTarget.style.background="transparent";e.currentTarget.style.color=T.text3;}}
+            >✕</button>
+          </div>
+        </td>
+      </tr>
+    );
+  };
+
+  const activeCols = COLS.filter(c => {
+    if (fcGroupBy === "obra" && c.key === "obra") return false;
+    if (fcGroupBy === "categoria" && c.key === "categoria") return false;
+    return true;
+  });
+
+  return (
+    <div>
+      {/* Header */}
+      <div className="rbim-filter-row" style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:12,gap:10,flexWrap:"wrap"}}>
+        <div style={{fontWeight:700,fontSize:16,fontFamily:T.fontDisplay||"inherit",letterSpacing:"-0.01em"}}>Lançamentos de Custos</div>
+        <div style={{display:"flex",gap:8,alignItems:"center",flexWrap:"wrap"}}>
+          <button onClick={()=>openModal("custo")} style={btnPrimary}>+ Novo Custo</button>
+        </div>
+      </div>
+
+      {/* Filtros + agrupamento */}
+      <div className="rbim-filter-row" style={{...surface({padding:"14px 18px",marginBottom:14}),display:"flex",gap:10,flexWrap:"wrap",alignItems:"flex-end"}}>
+        {[["Obra",fcObra,setFcObra,obrasNames],["Categoria",fcCat,setFcCat,catsNames]].map(([lbl,val,set,opts])=>(
+          <div key={lbl} style={{display:"flex",flexDirection:"column",gap:3}}>
+            <label style={labelStyle}>{lbl}</label>
+            <select value={val} onChange={e=>set(e.target.value)} style={{...inputStyle,width:130}}>
+              {opts.map(o=><option key={o}>{o}</option>)}
+            </select>
+          </div>
+        ))}
+        <div style={{display:"flex",flexDirection:"column",gap:3}}>
+          <label style={labelStyle}>Agrupar por</label>
+          <select value={fcGroupBy} onChange={e=>{setFcGroupBy(e.target.value);setCollapsedGroups(new Set());}} style={{...inputStyle,width:130}}>
+            <option value="none">Sem agrupamento</option>
+            <option value="obra">Obra</option>
+            <option value="categoria">Categoria</option>
+            <option value="mes">Mês</option>
+          </select>
+        </div>
+        <div style={{display:"flex",flexDirection:"column",gap:3,flex:1,minWidth:140}}>
+          <label style={labelStyle}>Buscar</label>
+          <input value={fcSearch} onChange={e=>setFcSearch(e.target.value)} placeholder="Descrição ou fornecedor..." style={inputStyle}/>
+        </div>
+      </div>
+
+      {/* ── Bulk Edit Bar ── */}
+      {someSelected && (
+        <div style={{
+          ...surface({padding:"12px 18px",marginBottom:14}),
+          borderLeft:`3px solid ${T.accent}`,
+          display:"flex",gap:10,alignItems:"center",flexWrap:"wrap",
+          animation:"fadeUp 0.15s ease-out",
+        }}>
+          <div style={{fontWeight:700,fontSize:13,color:T.accent,flexShrink:0}}>
+            {selectedIds.size} selecionado{selectedIds.size>1?"s":""}
+          </div>
+
+          <div style={{height:20,width:1,background:T.border2,flexShrink:0}}/>
+
+          {/* Campo a alterar */}
+          <select value={bulkField} onChange={e=>{setBulkField(e.target.value);setBulkValue("");setBulkSub("");}} style={{...inputStyle,width:"auto",minWidth:140}}>
+            {BULK_FIELDS.map(f=><option key={f.key} value={f.key}>{f.label}</option>)}
+          </select>
+
+          {/* Valor */}
+          {renderBulkValueInput()}
+
+          {/* Ações */}
+          <div style={{display:"flex",gap:6,marginLeft:"auto",flexShrink:0}}>
+            {bulkField && bulkValue && (
+              <button onClick={applyBulkEdit} style={{...btnPrimary,padding:"7px 16px",fontSize:12}}>
+                ✓ Aplicar em {selectedIds.size}
+              </button>
+            )}
+            <button onClick={applyBulkDelete}
+              style={{...btnGhost,color:T.danger,borderColor:T.danger+"44",padding:"7px 14px",fontSize:12}}>
+              🗑 Excluir ({selectedIds.size})
+            </button>
+            <button onClick={clearSelection} style={{...btnGhost,padding:"7px 12px",fontSize:12}}>✕</button>
+          </div>
+        </div>
+      )}
+
+      {/* ── Table ── */}
+      <div style={surface({padding:0,overflow:"hidden"})}>
+        {/* Summary bar */}
+        <div style={{padding:"12px 18px",borderBottom:`1px solid ${T.border}`,display:"flex",justifyContent:"space-between",alignItems:"center",flexWrap:"wrap",gap:8}}>
+          <span style={{fontWeight:600,fontSize:13}}>
+            {custos.length} registros · <span style={{color:T.accent,fontWeight:700}}>{fmt(custos.reduce((s,d)=>s+d.valor,0))}</span>
+            {someSelected && <span style={{color:T.text3,marginLeft:8,fontSize:11}}>
+              · seleção: <span style={{color:T.accent}}>{fmt([...selectedIds].reduce((s,id)=>{const c=custos.find(x=>x.id===id);return s+(c?.valor||0);},0))}</span>
+            </span>}
+          </span>
+          <span style={{fontSize:11,color:T.text3}}>
+            {fcGroupBy !== "none" ? `Agrupado por ${fcGroupBy === "obra" ? "obra" : fcGroupBy === "categoria" ? "categoria" : "mês"}` : "Clique no cabeçalho para ordenar"}
+          </span>
+        </div>
+
+        <div style={{overflowX:"auto",maxHeight:600,overflowY:"auto"}}>
+          <table style={{width:"100%",borderCollapse:"collapse",fontSize:11}}>
+            <thead style={{position:"sticky",top:0,background:T.surfaceSolid||T.surface2,zIndex:1}}>
+              <tr>
+                {activeCols.map(({key,label})=>(
+                  <th key={key}
+                    onClick={key!=="_actions"&&key!=="_check" ? ()=>toggleSort(key) : key==="_check" ? ()=>allSelected?clearSelection():selectAll(allIds) : undefined}
+                    style={{
+                      padding: key==="_check"?"10px 8px":"10px 10px",
+                      textAlign: key==="valor"?"right": key==="_check"?"center":"left",
+                      color: key==="_check"?T.accent : fcSort.col===key?T.accent:T.text3,
+                      fontWeight:600,fontSize:10,
+                      borderBottom:`1px solid ${T.border}`,
+                      whiteSpace:"nowrap",
+                      letterSpacing:"0.06em",textTransform:"uppercase",
+                      cursor: key!=="_actions"?"pointer":"default",
+                      userSelect:"none",transition:"color 0.15s",
+                      background: fcSort.col===key ? T.accent+"0A" : "transparent",
+                      width: key==="_check"?36: key==="_actions"?70:undefined,
+                    }}
+                  >
+                    {key==="_check" ? (
+                      <input type="checkbox" checked={allSelected} onChange={()=>allSelected?clearSelection():selectAll(allIds)} style={{width:15,height:15,borderRadius:4,cursor:"pointer",accentColor:T.accent,margin:0}}/>
+                    ) : (<>{label}{key!=="_actions" && <SortIcon col={key}/>}</>)}
+                  </th>
+                ))}
+              </tr>
+            </thead>
+
+            {/* ── Non-grouped ── */}
+            {!grouped && (
+              <tbody>{sortedRows.map((d,i)=>renderRow(d,i,null))}</tbody>
+            )}
+
+            {/* ── Grouped ── */}
+            {grouped && grouped.map(([groupKey, rows]) => {
+              const isCollapsed = collapsedGroups.has(groupKey);
+              const groupTotal = rows.reduce((s,d)=>s+d.valor,0);
+              const groupSelected = rows.filter(d=>selectedIds.has(d.id)).length;
+              const allGroupSelected = rows.length > 0 && rows.every(d=>selectedIds.has(d.id));
+              const groupIcon = fcGroupBy === "obra" ? "⬡" : fcGroupBy === "categoria" ? (CAT_ICONS[groupKey] || "📁") : "📅";
+
+              return (
+                <tbody key={groupKey}>
+                  {/* Group header row */}
+                  <tr style={{background:T.accent+"0A",borderBottom:`1px solid ${T.border}`}}>
+                    <td style={{padding:"8px 8px",textAlign:"center"}}>
+                      <input type="checkbox" checked={allGroupSelected}
+                        onChange={()=>{
+                          const ids = rows.map(d=>d.id);
+                          if(allGroupSelected) { setSelectedIds(prev=>{const n=new Set(prev);ids.forEach(id=>n.delete(id));return n;}); }
+                          else { setSelectedIds(prev=>{const n=new Set(prev);ids.forEach(id=>n.add(id));return n;}); }
+                        }}
+                        style={{width:15,height:15,borderRadius:4,cursor:"pointer",accentColor:T.accent,margin:0}}
+                      />
+                    </td>
+                    <td colSpan={activeCols.length - 2} style={{padding:"8px 10px",cursor:"pointer"}} onClick={()=>toggleGroup(groupKey)}>
+                      <div style={{display:"flex",alignItems:"center",gap:8}}>
+                        <span style={{fontSize:14}}>{groupIcon}</span>
+                        <span style={{fontWeight:700,fontSize:12,color:T.text}}>{groupKey || "—"}</span>
+                        <span style={{fontSize:10,color:T.text3,fontWeight:500}}>{rows.length} lançamento{rows.length>1?"s":""}</span>
+                        {groupSelected > 0 && <span style={{fontSize:9,color:T.accent,background:T.accent+"18",padding:"1px 7px",borderRadius:999,fontWeight:600}}>{groupSelected} sel.</span>}
+                        <span style={{marginLeft:"auto",fontWeight:700,fontSize:12,color:T.accent,fontFamily:T.fontDisplay||"inherit"}}>{fmt(groupTotal)}</span>
+                        <span style={{fontSize:10,color:T.text3,marginLeft:6,transition:"transform 0.2s",transform:isCollapsed?"rotate(-90deg)":"rotate(0deg)",display:"inline-block"}}>▼</span>
+                      </div>
+                    </td>
+                    <td style={{padding:"8px 8px"}}/>
+                  </tr>
+                  {/* Group rows */}
+                  {!isCollapsed && rows.map((d,i) => renderRow(d,i,groupKey))}
+                </tbody>
+              );
+            })}
+          </table>
+        </div>
+      </div>
+
+      {/* ── Ideias / Dicas ── */}
+      {custos.length === 0 && (
+        <div style={{...surface({textAlign:"center",padding:"48px 20px",marginTop:14})}}>
+          <div style={{fontSize:36,marginBottom:12}}>💸</div>
+          <div style={{fontWeight:700,fontSize:15,marginBottom:6}}>Nenhum lançamento encontrado</div>
+          <div style={{fontSize:12,color:T.text3,marginBottom:16}}>Ajuste os filtros ou crie um novo custo</div>
+        </div>
+      )}
+    </div>
   );
 }
 
@@ -1525,27 +2112,54 @@ function BudgetStepAccordion({ etapa, icone, cor, total, totalOrc, isOpen, onTog
 
 // ─── ABA ORÇAMENTO ───────────────────────────────────────────────────────────
 
+function GaugeCircle({ pct, cor, size = 80, T }) {
+  const r = (size / 2) - 8;
+  const circ = 2 * Math.PI * r;
+  const filled = Math.min(pct / 100, 1) * circ;
+  const color = pct > 100 ? T.danger : pct > 80 ? T.accent2 : cor;
+  return (
+    <svg width={size} height={size} style={{ display: "block" }}>
+      <circle cx={size/2} cy={size/2} r={r} fill="none" stroke={T.border2} strokeWidth={7} />
+      <circle cx={size/2} cy={size/2} r={r} fill="none" stroke={color} strokeWidth={7}
+        strokeDasharray={`${filled} ${circ}`} strokeLinecap="round"
+        transform={`rotate(-90 ${size/2} ${size/2})`}
+        style={{ transition: "stroke-dasharray 0.5s" }} />
+      <text x={size/2} y={size/2 + 1} textAnchor="middle" dominantBaseline="middle"
+        fill={color} fontSize={size < 70 ? 10 : 13} fontWeight="700" fontFamily="inherit">
+        {pct > 0 ? `${Math.round(pct)}%` : "—"}
+      </text>
+    </svg>
+  );
+}
+
+function HealthDot({ pct, T }) {
+  const color = pct === 0 ? T.text3 : pct > 100 ? T.danger : pct > 80 ? "#F59E0B" : T.success;
+  const label = pct === 0 ? "—" : pct > 100 ? "Estourado" : pct > 80 ? "Atenção" : "OK";
+  return (
+    <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
+      <div style={{ width: 8, height: 8, borderRadius: "50%", background: color, flexShrink: 0 }} />
+      <span style={{ fontSize: 9, color, fontWeight: 700 }}>{label}</span>
+    </div>
+  );
+}
+
 function AbaOrcamento({ T, obras, custos, orcamento, setOrcamento, saldoBancos,
   btnPrimary, btnGhost, surface, inputStyle, labelStyle, onNovaLinha }) {
 
   const [filtroObra, setFiltroObra] = useState("TODAS");
-  const [modoTemplate, setModoTemplate] = useState(false);   // false=tabela | true=template
+  const [modoTemplate, setModoTemplate] = useState(false);
   const [templateObra, setTemplateObra] = useState("");
-  // { etapa_subcategoria -> valorStr }
-  const [templateVals, setTemplateVals] = useState({});
+  const [templateVals, setTemplateVals] = useState({}); // { "CATEGORIA" -> number }
+  const [editingCell, setEditingCell] = useState(null); // { id, field } para edição inline
+  const [editingVal, setEditingVal] = useState("");
 
   const obrasList = ["TODAS", ...obras.map(o => o.nome)];
-
-  // caixa consolidado de todos os bancos
   const caixaTotal = saldoBancos.reduce((s, b) => s + (b.saldoAtual || 0), 0);
 
-  // linhas filtradas
-  const linhasFilt = useMemo(() => {
-    const base = filtroObra === "TODAS" ? orcamento : orcamento.filter(x => x.obra === filtroObra);
-    return base;
-  }, [orcamento, filtroObra]);
+  const linhasFilt = useMemo(() =>
+    filtroObra === "TODAS" ? orcamento : orcamento.filter(x => x.obra === filtroObra),
+  [orcamento, filtroObra]);
 
-  // agrupado por obra para o modo tabela
   const obrasFilt = useMemo(() => {
     const nomes = filtroObra === "TODAS"
       ? [...new Set(orcamento.map(x => x.obra))]
@@ -1553,152 +2167,157 @@ function AbaOrcamento({ T, obras, custos, orcamento, setOrcamento, saldoBancos,
     return nomes;
   }, [orcamento, filtroObra]);
 
-  // totais consolidados
   const totalOrcGlobal = linhasFilt.reduce((s, x) => s + (x.valorOrcado || 0), 0);
   const totalRealGlobal = useMemo(() => {
     const obraSet = filtroObra === "TODAS" ? null : filtroObra;
-    return custos
-      .filter(c => !obraSet || c.obra === obraSet)
-      .reduce((s, c) => s + (c.valor || 0), 0);
+    return custos.filter(c => !obraSet || c.obra === obraSet).reduce((s, c) => s + (c.valor || 0), 0);
   }, [custos, filtroObra]);
   const diffGlobal = totalOrcGlobal - totalRealGlobal;
+  const pctGlobal = totalOrcGlobal > 0 ? (totalRealGlobal / totalOrcGlobal) * 100 : 0;
 
-  // salvar template como linhas de orcamento
+  // ── edição inline ────────────────────────────────────────────────────────
+  const startEdit = (id, val) => { setEditingCell(id); setEditingVal(String(val)); };
+  const commitEdit = async (id) => {
+    const v = parseFloat(editingVal.replace(",", ".")) || 0;
+    await sbFetch("orcamento", { method: "PATCH", id, body: { valor_orcado: v } });
+    setOrcamento(prev => prev.map(x => x.id === id ? { ...x, valorOrcado: v } : x));
+    setEditingCell(null);
+  };
+
+  // ── salvar template simplificado (por categoria apenas) ──────────────────
   const salvarTemplate = async () => {
     if (!templateObra) { alert("Selecione uma obra."); return; }
     const novas = [];
-    DEFAULT_BUDGET_TEMPLATE.forEach(etapaObj => {
-      etapaObj.itens.forEach(item => {
-        const key = `${etapaObj.etapa}__${item.subcategoria}`;
-        const v = parseFloat((templateVals[key] || "").replace(",", ".")) || 0;
-        if (v > 0) {
-          novas.push({
-            id: nid(),
-            obra: templateObra,
-            categoria: etapaObj.etapa,
-            subcategoria: item.subcategoria,
-            tipo: item.tipo,
-            natureza: item.natureza,
-            valorOrcado: v,
-          });
-        }
-      });
+    const CATS_TEMPLATE = [
+      { cat: "SERVIÇOS PRELIMINARES", tipo: "Indireto (BDI)", natureza: "Material"    },
+      { cat: "ESTRUTURA",             tipo: "Direto",         natureza: "Material"    },
+      { cat: "ALVENARIA",             tipo: "Direto",         natureza: "Material"    },
+      { cat: "COBERTURA",             tipo: "Direto",         natureza: "Material"    },
+      { cat: "INSTALAÇÃO HIDRO",      tipo: "Direto",         natureza: "Material"    },
+      { cat: "INSTALAÇÃO ELÉTRICA",   tipo: "Direto",         natureza: "Material"    },
+      { cat: "PISO",                  tipo: "Direto",         natureza: "Material"    },
+      { cat: "PINTURA",               tipo: "Direto",         natureza: "Material"    },
+      { cat: "REVESTIMENTO",          tipo: "Direto",         natureza: "Material"    },
+      { cat: "ACABAMENTOS",           tipo: "Direto",         natureza: "Material"    },
+      { cat: "MÃO DE OBRA",           tipo: "Direto",         natureza: "Mão de Obra" },
+      { cat: "CUSTOS INDIRETOS",      tipo: "Indireto (BDI)", natureza: "Material"    },
+      { cat: "CUSTOS ADMINISTRATIVOS",tipo: "Administrativo", natureza: "Material"    },
+      { cat: "LOGISTICA",             tipo: "Indireto (BDI)", natureza: "Material"    },
+    ];
+    CATS_TEMPLATE.forEach(({ cat, tipo, natureza }) => {
+      const v = templateVals[cat] || 0;
+      if (v > 0) {
+        novas.push({ obra: templateObra, categoria: cat, subcategoria: "GERAL", tipo, natureza, valorOrcado: v });
+      }
     });
     if (novas.length === 0) { alert("Preencha ao menos um valor."); return; }
-    // salva cada linha no Supabase em paralelo
-    const promises = novas.map(n => sbFetch("orcamento", { method:"POST", body:{obra:n.obra,categoria:n.categoria,subcategoria:n.subcategoria,tipo:n.tipo,natureza:n.natureza,valor_orcado:n.valorOrcado} }));
+    const promises = novas.map(n => sbFetch("orcamento", { method: "POST", body: { obra: n.obra, categoria: n.categoria, subcategoria: n.subcategoria, tipo: n.tipo, natureza: n.natureza, valor_orcado: n.valorOrcado } }));
     const results = await Promise.all(promises);
-    const salvas = results.filter(r=>r?.[0]).map(r=>mapOrcamento(r[0]));
+    const salvas = results.filter(r => r?.[0]).map(r => mapOrcamento(r[0]));
     setOrcamento(prev => [...prev, ...salvas]);
     setModoTemplate(false);
     setTemplateVals({});
     setTemplateObra("");
   };
 
-  const tvSet = (key, val) => setTemplateVals(prev => ({ ...prev, [key]: val }));
-
-  // ── render modo template ──
+  // ── MODO TEMPLATE ──────────────────────────────────────────────────────────
   if (modoTemplate) {
-    const templateTotal = Object.values(templateVals)
-      .reduce((s, v) => s + (parseFloat((v || "").replace(",", ".")) || 0), 0);
+    const templateTotal = Object.values(templateVals).reduce((s, v) => s + (v || 0), 0);
+    const CATS_TEMPLATE = [
+      { cat: "SERVIÇOS PRELIMINARES", icone: "🔧", cor: "#06B6D4" },
+      { cat: "ESTRUTURA",             icone: "🏗️", cor: "#F97316" },
+      { cat: "ALVENARIA",             icone: "🧱", cor: "#EF4444" },
+      { cat: "COBERTURA",             icone: "🏠", cor: "#8B5CF6" },
+      { cat: "INSTALAÇÃO HIDRO",      icone: "🚿", cor: "#10B981" },
+      { cat: "INSTALAÇÃO ELÉTRICA",   icone: "⚡", cor: "#FBBF24" },
+      { cat: "PISO",                  icone: "🪵", cor: "#D97706" },
+      { cat: "PINTURA",               icone: "🎨", cor: "#EC4899" },
+      { cat: "REVESTIMENTO",          icone: "🪟", cor: "#84CC16" },
+      { cat: "ACABAMENTOS",           icone: "✨", cor: "#14B8A6" },
+      { cat: "MÃO DE OBRA",           icone: "👷", cor: "#F59E0B" },
+      { cat: "CUSTOS INDIRETOS",      icone: "📦", cor: "#6366F1" },
+      { cat: "CUSTOS ADMINISTRATIVOS",icone: "📋", cor: "#0EA5E9" },
+      { cat: "LOGISTICA",             icone: "🚚", cor: "#E11D48" },
+    ];
+    const preenchidas = CATS_TEMPLATE.filter(c => (templateVals[c.cat] || 0) > 0).length;
 
     return (
       <div>
-        {/* header template */}
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
+        {/* ── HEADER ── */}
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 20, flexWrap: "wrap", gap: 12 }}>
           <div>
-            <div style={{ fontWeight: 900, fontSize: 16 }}>📋 Template de Orçamento</div>
-            <div style={{ fontSize: 11, color: T.text3, marginTop: 2 }}>
-              Preencha os valores estimados por macroetapa
+            <div style={{ fontWeight: 700, fontSize: 18, fontFamily: T.fontDisplay }}>📋 Novo Orçamento</div>
+            <div style={{ fontSize: 12, color: T.text3, marginTop: 4 }}>
+              Insira o valor estimado por categoria. Deixe em branco o que não se aplica.
             </div>
           </div>
-          <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
-            <div style={{ ...surface({ padding: "8px 16px" }), textAlign: "center" }}>
+          <div style={{ display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap" }}>
+            <div style={{ ...surface({ padding: "10px 20px" }), textAlign: "center", borderTop: `2px solid ${T.info}` }}>
               <div style={{ fontSize: 9, color: T.text3, textTransform: "uppercase", letterSpacing: 1 }}>Total Orçado</div>
-              <div style={{ fontSize: 16, fontWeight: 700, color: T.info }}>
-                {fmt(templateTotal)}
-              </div>
+              <div style={{ fontSize: 18, fontWeight: 700, color: T.info, fontFamily: T.fontDisplay }}>{fmt(templateTotal)}</div>
+              <div style={{ fontSize: 9, color: T.text3, marginTop: 2 }}>{preenchidas} categorias</div>
             </div>
-            <button onClick={() => { setModoTemplate(false); setTemplateVals({}); }} style={btnGhost}>
-              ✕ Cancelar
-            </button>
-            <button onClick={salvarTemplate} style={{ ...btnPrimary, background: T.success }}>
-              ✓ Salvar Orçamento
-            </button>
+            <button onClick={() => { setModoTemplate(false); setTemplateVals({}); }} style={btnGhost}>✕ Cancelar</button>
+            <button onClick={salvarTemplate} style={{ ...btnPrimary, background: T.success }}>✓ Salvar Orçamento</button>
           </div>
         </div>
 
-        {/* seletor de obra */}
-        <div style={{ ...surface({ padding: "12px 16px", marginBottom: 16 }), display: "flex", gap: 12, alignItems: "flex-end" }}>
-          <div style={{ flex: "0 0 220px" }}>
+        {/* ── SELETOR DE OBRA ── */}
+        <div style={{ ...surface({ padding: "14px 20px", marginBottom: 20 }), display: "flex", gap: 16, alignItems: "center", flexWrap: "wrap" }}>
+          <div style={{ flex: "0 0 240px" }}>
             <label style={labelStyle}>Obra *</label>
             <select value={templateObra} onChange={e => setTemplateObra(e.target.value)} style={inputStyle}>
-              <option value="">-- selecione a obra --</option>
+              <option value="">— selecione a obra —</option>
               {obras.map(o => <option key={o.id} value={o.nome}>{o.nome}</option>)}
             </select>
           </div>
-          <div style={{ fontSize: 11, color: T.text3 }}>
-            Preencha apenas as linhas que se aplicam à obra. Linhas em branco são ignoradas.
-          </div>
+          {templateObra && (
+            <div style={{ padding: "6px 14px", background: T.success + "18", border: `1px solid ${T.success}44`, borderRadius: 8, fontSize: 12, color: T.success, fontWeight: 600 }}>
+              ✓ {templateObra}
+            </div>
+          )}
         </div>
 
-        {/* macroetapas do template */}
-        <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-          {DEFAULT_BUDGET_TEMPLATE.map(etapaObj => {
-            const etapaTotal = etapaObj.itens.reduce((s, item) => {
-              const key = `${etapaObj.etapa}__${item.subcategoria}`;
-              return s + (parseFloat((templateVals[key] || "").replace(",", ".")) || 0);
-            }, 0);
+        {/* ── GRID DE CATEGORIAS ── */}
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(200px, 1fr))", gap: 10 }}>
+          {CATS_TEMPLATE.map(({ cat, icone, cor }) => {
+            const val = templateVals[cat] || 0;
+            const preenchido = val > 0;
             return (
-              <div key={etapaObj.etapa} style={{
+              <div key={cat} style={{
                 ...surface({ padding: 0, overflow: "hidden" }),
-                borderLeft: `4px solid ${etapaObj.cor}`
+                borderLeft: `3px solid ${preenchido ? cor : T.border2}`,
+                transition: "border-color 0.2s, box-shadow 0.2s",
+                boxShadow: preenchido ? `0 2px 12px ${cor}22` : undefined,
               }}>
-                {/* etapa header */}
+                {/* card header */}
                 <div style={{
-                  display: "flex", justifyContent: "space-between", alignItems: "center",
-                  padding: "10px 16px", background: etapaObj.cor + "18",
-                  borderBottom: `1px solid ${T.border}`
+                  padding: "10px 14px", display: "flex", alignItems: "center", gap: 8,
+                  background: preenchido ? cor + "12" : "transparent",
+                  borderBottom: `1px solid ${T.border}`,
+                  transition: "background 0.2s",
                 }}>
-                  <div style={{ fontWeight: 800, fontSize: 13 }}>
-                    {etapaObj.icone} {etapaObj.etapa}
-                  </div>
-                  <div style={{ fontSize: 12, fontWeight: 700, color: etapaTotal > 0 ? etapaObj.cor : T.text3 }}>
-                    {etapaTotal > 0 ? fmt(etapaTotal) : "—"}
+                  <span style={{ fontSize: 18 }}>{icone}</span>
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ fontSize: 10, fontWeight: 700, color: preenchido ? cor : T.text2, lineHeight: 1.3, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{cat}</div>
+                    {preenchido && <div style={{ fontSize: 9, color: cor, marginTop: 1 }}>{fmt(val)}</div>}
                   </div>
                 </div>
-                {/* itens */}
-                <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill,minmax(220px,1fr))", gap: 0 }}>
-                  {etapaObj.itens.map(item => {
-                    const key = `${etapaObj.etapa}__${item.subcategoria}`;
-                    return (
-                      <div key={key} style={{
-                        padding: "10px 16px",
-                        borderRight: `1px solid ${T.border}`,
-                        borderBottom: `1px solid ${T.border}`,
-                      }}>
-                        <div style={{ fontSize: 10, color: T.text2, marginBottom: 4, fontWeight: 600 }}>
-                          {item.subcategoria}
-                          <span style={{
-                            marginLeft: 6, fontSize: 9, color: T.text3,
-                            background: T.surface2, padding: "1px 5px", borderRadius: 4
-                          }}>{item.natureza}</span>
-                        </div>
-                        <input
-                          type="number"
-                          placeholder="R$ 0,00"
-                          value={templateVals[key] || ""}
-                          onChange={e => tvSet(key, e.target.value)}
-                          style={{
-                            ...inputStyle,
-                            padding: "6px 10px",
-                            borderColor: templateVals[key] ? etapaObj.cor : undefined,
-                            fontSize: 12,
-                          }}
-                        />
-                      </div>
-                    );
-                  })}
+                {/* input */}
+                <div style={{ padding: "10px 14px" }}>
+                  <CurrencyInput
+                    value={val}
+                    onChange={v => setTemplateVals(prev => ({ ...prev, [cat]: v }))}
+                    label=""
+                    inputStyle={{
+                      ...inputStyle,
+                      borderColor: preenchido ? cor + "88" : undefined,
+                      fontSize: 13,
+                      fontWeight: 600,
+                    }}
+                    labelStyle={labelStyle}
+                    T={T}
+                  />
                 </div>
               </div>
             );
@@ -1708,147 +2327,207 @@ function AbaOrcamento({ T, obras, custos, orcamento, setOrcamento, saldoBancos,
     );
   }
 
-  // ── render modo tabela ──
+  // ── MODO TABELA (visão principal) ─────────────────────────────────────────
   return (
     <div>
-      {/* Header + KPIs */}
-      <div style={{ display: "flex", gap: 10, marginBottom: 14, flexWrap: "wrap", alignItems: "stretch" }}>
+      {/* KPIs com gauge */}
+      <div className="rbim-orc-kpis" style={{ display: "flex", gap: 10, marginBottom: 16, flexWrap: "wrap", alignItems: "stretch" }}>
 
-        {/* Card Caixa */}
-        <div style={{
-          ...surface({ padding: "14px 20px" }),
-          minWidth: 180, flex: "0 0 auto",
-          borderLeft: `4px solid ${caixaTotal >= 0 ? T.success : T.danger}`,
-          display: "flex", flexDirection: "column", justifyContent: "center"
-        }}>
-          <div style={{ fontSize: 10, color: T.text3, textTransform: "uppercase", letterSpacing: 1, marginBottom: 4 }}>
-            🏦 Caixa Disponível
-          </div>
-          <div style={{ fontSize: 22, fontWeight: 700, color: caixaTotal >= 0 ? T.success : T.danger, fontFamily: T.fontDisplay||"inherit" }}>
-            {fmt(caixaTotal)}
-          </div>
-          <div style={{ fontSize: 10, color: T.text3, marginTop: 3 }}>
-            {saldoBancos.length} conta(s) consolidada(s)
+        {/* Gauge geral */}
+        <div style={{ ...surface({ padding: "16px 20px" }), display: "flex", alignItems: "center", gap: 16, minWidth: 200, flex: "0 0 auto" }}>
+          <GaugeCircle pct={pctGlobal} cor={T.info} size={80} T={T} />
+          <div>
+            <div style={{ fontSize: 10, color: T.text3, textTransform: "uppercase", letterSpacing: 1, marginBottom: 4 }}>Execução Geral</div>
+            <div style={{ fontSize: 13, fontWeight: 700, color: pctGlobal > 100 ? T.danger : pctGlobal > 80 ? "#F59E0B" : T.success }}>
+              {pctGlobal > 100 ? "Estourado" : pctGlobal > 80 ? "Atenção" : "Dentro do orçamento"}
+            </div>
+            <div style={{ fontSize: 11, color: T.text3, marginTop: 2 }}>{fmt(totalRealGlobal)} de {fmt(totalOrcGlobal)}</div>
           </div>
         </div>
 
-        {/* KPI Orçado */}
-        <div style={{ ...surface({ padding: "14px 20px" }), flex: 1, minWidth: 140 }}>
+        {/* Caixa */}
+        <div style={{ ...surface({ padding: "14px 20px" }), flex: 1, minWidth: 140, borderTop: `2px solid ${caixaTotal >= 0 ? T.success : T.danger}` }}>
+          <div style={{ fontSize: 10, color: T.text3, textTransform: "uppercase", letterSpacing: 1, marginBottom: 4 }}>🏦 Caixa</div>
+          <div style={{ fontSize: 20, fontWeight: 700, color: caixaTotal >= 0 ? T.success : T.danger, fontFamily: T.fontDisplay }}>{fmt(caixaTotal)}</div>
+          <div style={{ fontSize: 10, color: T.text3, marginTop: 2 }}>{saldoBancos.length} conta(s)</div>
+        </div>
+
+        {/* Orçado */}
+        <div style={{ ...surface({ padding: "14px 20px" }), flex: 1, minWidth: 140, borderTop: `2px solid ${T.info}` }}>
           <div style={{ fontSize: 10, color: T.text3, textTransform: "uppercase", letterSpacing: 1, marginBottom: 4 }}>Total Orçado</div>
-          <div style={{ fontSize: 20, fontWeight: 700, color: T.info, fontFamily: T.fontDisplay||"inherit" }}>{fmt(totalOrcGlobal)}</div>
+          <div style={{ fontSize: 20, fontWeight: 700, color: T.info, fontFamily: T.fontDisplay }}>{fmt(totalOrcGlobal)}</div>
         </div>
 
-        {/* KPI Realizado */}
-        <div style={{ ...surface({ padding: "14px 20px" }), flex: 1, minWidth: 140 }}>
-          <div style={{ fontSize: 10, color: T.text3, textTransform: "uppercase", letterSpacing: 1, marginBottom: 4 }}>Total Realizado</div>
-          <div style={{ fontSize: 20, fontWeight: 700, color: T.accent, fontFamily: T.fontDisplay||"inherit" }}>{fmt(totalRealGlobal)}</div>
+        {/* Realizado */}
+        <div style={{ ...surface({ padding: "14px 20px" }), flex: 1, minWidth: 140, borderTop: `2px solid ${T.accent}` }}>
+          <div style={{ fontSize: 10, color: T.text3, textTransform: "uppercase", letterSpacing: 1, marginBottom: 4 }}>Realizado</div>
+          <div style={{ fontSize: 20, fontWeight: 700, color: T.accent, fontFamily: T.fontDisplay }}>{fmt(totalRealGlobal)}</div>
         </div>
 
-        {/* KPI Saldo */}
-        <div style={{
-          ...surface({ padding: "14px 20px" }),
-          flex: 1, minWidth: 140,
-          borderLeft: `4px solid ${diffGlobal >= 0 ? T.success : T.danger}`
-        }}>
-          <div style={{ fontSize: 10, color: T.text3, textTransform: "uppercase", letterSpacing: 1, marginBottom: 4 }}>Saldo Orç. vs Real.</div>
-          <div style={{ fontSize: 20, fontWeight: 700, color: diffGlobal >= 0 ? T.success : T.danger, fontFamily: T.fontDisplay||"inherit" }}>{fmt(diffGlobal)}</div>
+        {/* Saldo */}
+        <div style={{ ...surface({ padding: "14px 20px" }), flex: 1, minWidth: 140, borderTop: `2px solid ${diffGlobal >= 0 ? T.success : T.danger}` }}>
+          <div style={{ fontSize: 10, color: T.text3, textTransform: "uppercase", letterSpacing: 1, marginBottom: 4 }}>Saldo</div>
+          <div style={{ fontSize: 20, fontWeight: 700, color: diffGlobal >= 0 ? T.success : T.danger, fontFamily: T.fontDisplay }}>{fmt(diffGlobal)}</div>
         </div>
       </div>
 
-      {/* Toolbar filtro + ações */}
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end", marginBottom: 14, flexWrap: "wrap", gap: 10 }}>
-        <div style={{ display: "flex", gap: 10, alignItems: "flex-end" }}>
-          <div>
-            <label style={labelStyle}>Filtrar por Obra</label>
-            <select value={filtroObra} onChange={e => setFiltroObra(e.target.value)} style={{ ...inputStyle, width: 200 }}>
-              {obrasList.map(o => <option key={o}>{o}</option>)}
-            </select>
-          </div>
+      {/* Toolbar */}
+      <div className="rbim-budget-toolbar" style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end", marginBottom: 14, flexWrap: "wrap", gap: 10 }}>
+        <div>
+          <label style={labelStyle}>Filtrar por Obra</label>
+          <select value={filtroObra} onChange={e => setFiltroObra(e.target.value)} style={{ ...inputStyle, width: 220 }}>
+            {obrasList.map(o => <option key={o}>{o}</option>)}
+          </select>
         </div>
         <div style={{ display: "flex", gap: 8 }}>
           <button onClick={onNovaLinha} style={btnGhost}>+ Linha Avulsa</button>
           <button onClick={() => setModoTemplate(true)} style={{ ...btnPrimary, background: T.info }}>
-            📋 Novo Orçamento por Template
+            📋 Novo Orçamento
           </button>
         </div>
       </div>
 
-      {/* Tabela por obra */}
+      {/* Vazio */}
       {obrasFilt.length === 0 && (
-        <div style={{ ...surface({ textAlign: "center", padding: "40px 20px", color: T.text3 }) }}>
-          Nenhum orçamento cadastrado. Clique em "Novo Orçamento por Template" para começar.
+        <div style={{ ...surface({ textAlign: "center", padding: "48px 20px" }) }}>
+          <div style={{ fontSize: 36, marginBottom: 12 }}>📋</div>
+          <div style={{ fontWeight: 700, fontSize: 15, marginBottom: 6 }}>Nenhum orçamento cadastrado</div>
+          <div style={{ fontSize: 12, color: T.text3, marginBottom: 16 }}>Crie o orçamento da obra clicando em "Novo Orçamento"</div>
+          <button onClick={() => setModoTemplate(true)} style={{ ...btnPrimary, background: T.info }}>📋 Criar Primeiro Orçamento</button>
         </div>
       )}
 
+      {/* Cards por obra */}
       {obrasFilt.map(nomeObra => {
         const linhas = linhasFilt.filter(x => x.obra === nomeObra);
         if (linhas.length === 0) return null;
         const totalOrc = linhas.reduce((s, x) => s + (x.valorOrcado || 0), 0);
         const totalReal = custos.filter(c => c.obra === nomeObra).reduce((s, c) => s + (c.valor || 0), 0);
         const diff = totalOrc - totalReal;
-        const pct = totalOrc > 0 ? Math.min((totalReal / totalOrc) * 100, 100) : 0;
+        const pct = totalOrc > 0 ? (totalReal / totalOrc) * 100 : 0;
+
+        // agrupa por categoria para os cards visuais
+        const porCat = {};
+        linhas.forEach(x => {
+          if (!porCat[x.categoria]) porCat[x.categoria] = { orc: 0, linhas: [] };
+          porCat[x.categoria].orc += x.valorOrcado || 0;
+          porCat[x.categoria].linhas.push(x);
+        });
+        Object.keys(porCat).forEach(cat => {
+          porCat[cat].real = custos.filter(c => c.obra === nomeObra && c.categoria === cat).reduce((s, c) => s + c.valor, 0);
+          porCat[cat].pct = porCat[cat].orc > 0 ? (porCat[cat].real / porCat[cat].orc) * 100 : 0;
+        });
 
         return (
-          <div key={nomeObra} style={{ ...surface({ marginBottom: 14, padding: 0, overflow: "hidden" }) }}>
+          <div key={nomeObra} style={{ ...surface({ marginBottom: 16, padding: 0, overflow: "hidden" }) }}>
             {/* obra header */}
-            <div style={{
-              padding: "12px 18px",
-              background: T.surface2,
-              borderBottom: `1px solid ${T.border}`,
-              display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 8
-            }}>
-              <div style={{ fontWeight: 900, fontSize: 15 }}>{nomeObra}</div>
-              <div style={{ display: "flex", gap: 20, fontSize: 12, flexWrap: "wrap" }}>
-                <span>Orçado: <strong style={{ color: T.info }}>{fmt(totalOrc)}</strong></span>
-                <span>Realizado: <strong style={{ color: T.accent }}>{fmt(totalReal)}</strong></span>
-                <span>Saldo: <strong style={{ color: diff >= 0 ? T.success : T.danger }}>{fmt(diff)}</strong></span>
+            <div style={{ padding: "14px 20px", background: T.surface2, borderBottom: `1px solid ${T.border}`, display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 10 }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
+                <GaugeCircle pct={pct} cor={T.info} size={56} T={T} />
+                <div>
+                  <div style={{ fontWeight: 700, fontSize: 16, fontFamily: T.fontDisplay }}>{nomeObra}</div>
+                  <div style={{ display: "flex", gap: 16, fontSize: 12, marginTop: 4, flexWrap: "wrap" }}>
+                    <span>Orçado: <strong style={{ color: T.info }}>{fmt(totalOrc)}</strong></span>
+                    <span>Realizado: <strong style={{ color: T.accent }}>{fmt(totalReal)}</strong></span>
+                    <span>Saldo: <strong style={{ color: diff >= 0 ? T.success : T.danger }}>{fmt(diff)}</strong></span>
+                  </div>
+                </div>
               </div>
             </div>
-            {/* barra de progresso */}
-            <div style={{ padding: "8px 18px", borderBottom: `1px solid ${T.border}` }}>
-              <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 4, fontSize: 10, color: T.text3 }}>
-                <span>Execução do orçamento</span>
-                <span style={{ fontWeight: 700, color: pct > 100 ? T.danger : pct > 80 ? T.accent2 : T.success }}>{pct.toFixed(1)}%</span>
-              </div>
-              <div style={{ background: T.border2, borderRadius: 999, height: 8, overflow: "hidden" }}>
-                <div style={{
-                  height: "100%", borderRadius: 999, transition: "width 0.4s",
-                  width: `${pct}%`,
-                  background: pct > 100 ? T.danger : pct > 80 ? T.accent2 : T.info
-                }} />
-              </div>
+
+            {/* cards visuais por categoria */}
+            <div style={{ padding: "14px", display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(180px, 1fr))", gap: 8 }}>
+              {Object.entries(porCat).map(([cat, dados]) => {
+                const cor = CAT_COLORS[cat] || T.accent;
+                const icon = CAT_ICONS[cat] || "📁";
+                const saude = dados.pct;
+                return (
+                  <div key={cat} style={{
+                    background: T.surface2, borderRadius: 10, overflow: "hidden",
+                    border: `1px solid ${saude > 100 ? T.danger + "66" : T.border}`,
+                    borderTop: `3px solid ${cor}`,
+                    transition: "box-shadow 0.15s",
+                  }}
+                    onMouseEnter={e => e.currentTarget.style.boxShadow = `0 4px 16px ${cor}22`}
+                    onMouseLeave={e => e.currentTarget.style.boxShadow = "none"}
+                  >
+                    <div style={{ padding: "10px 12px" }}>
+                      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 6 }}>
+                        <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                          <span style={{ fontSize: 16 }}>{icon}</span>
+                          <span style={{ fontSize: 9, fontWeight: 700, color: cor, textTransform: "uppercase", lineHeight: 1.2 }}>{cat}</span>
+                        </div>
+                        <HealthDot pct={saude} T={T} />
+                      </div>
+                      {/* barra de progresso */}
+                      <div style={{ background: T.border2, borderRadius: 999, height: 4, overflow: "hidden", marginBottom: 6 }}>
+                        <div style={{
+                          height: "100%", borderRadius: 999, transition: "width 0.4s",
+                          width: `${Math.min(saude, 100)}%`,
+                          background: saude > 100 ? T.danger : saude > 80 ? "#F59E0B" : cor,
+                        }} />
+                      </div>
+                      <div style={{ display: "flex", justifyContent: "space-between", fontSize: 10 }}>
+                        <span style={{ color: T.text3 }}>Orç: <span style={{ color: T.info, fontWeight: 600 }}>{fmt(dados.orc)}</span></span>
+                        <span style={{ color: T.text3 }}>Real: <span style={{ color: dados.real > dados.orc ? T.danger : T.accent, fontWeight: 600 }}>{fmt(dados.real)}</span></span>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
             </div>
-            {/* tabela de linhas */}
-            <div style={{ overflowX: "auto" }}>
+
+            {/* tabela inline */}
+            <div style={{ borderTop: `1px solid ${T.border}`, overflowX: "auto" }}>
               <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 11 }}>
                 <thead>
                   <tr style={{ background: T.surface2 }}>
-                    {["Categoria", "Subcategoria", "Tipo", "Natureza", "Orçado", "Realizado", "Diferença", ""].map(h => (
-                      <th key={h} style={{ padding: "7px 12px", textAlign: "left", color: T.info, fontWeight: 700, fontSize: 10, borderBottom: `1px solid ${T.border}`, whiteSpace: "nowrap" }}>{h}</th>
+                    {["Categoria", "Subcategoria", "Tipo", "Natureza", "Orçado", "Realizado", "Saldo", ""].map(h => (
+                      <th key={h} style={{ padding: "8px 12px", textAlign: h === "Orçado" || h === "Realizado" || h === "Saldo" ? "right" : "left", color: T.text3, fontWeight: 600, fontSize: 10, borderBottom: `1px solid ${T.border}`, whiteSpace: "nowrap", textTransform: "uppercase", letterSpacing: "0.05em" }}>{h}</th>
                     ))}
                   </tr>
                 </thead>
                 <tbody>
                   {linhas.map((x, i) => {
-                    const real = custos.filter(c => c.obra === nomeObra && c.categoria === x.categoria && c.subcategoria === x.subcategoria)
-                      .reduce((s, c) => s + (c.valor || 0), 0);
+                    const real = custos.filter(c => c.obra === nomeObra && c.categoria === x.categoria && c.subcategoria === x.subcategoria).reduce((s, c) => s + (c.valor || 0), 0);
                     const dif = (x.valorOrcado || 0) - real;
+                    const isEditing = editingCell === x.id;
                     return (
                       <tr key={i} style={{ borderBottom: `1px solid ${T.border}`, background: i % 2 === 0 ? "transparent" : T.rowAlt }}>
-                        <td style={{ padding: "7px 12px", color: T.accent2 }}>{x.categoria}</td>
-                        <td style={{ padding: "7px 12px", color: T.text2 }}>{x.subcategoria}</td>
-                        <td style={{ padding: "7px 12px" }}>
-                          <span style={{ background: T.info + "18", color: T.info, padding: "2px 8px", borderRadius: 6, fontSize: 9, fontWeight: 600 }}>{x.tipo}</span>
+                        <td style={{ padding: "8px 12px", color: CAT_COLORS[x.categoria] || T.accent2, fontWeight: 600 }}>
+                          <span style={{ marginRight: 5 }}>{CAT_ICONS[x.categoria] || ""}</span>{x.categoria}
                         </td>
-                        <td style={{ padding: "7px 12px" }}>
-                          <span style={{ background: T.accent + "18", color: T.accent, padding: "2px 8px", borderRadius: 6, fontSize: 9, fontWeight: 600 }}>{x.natureza}</span>
+                        <td style={{ padding: "8px 12px", color: T.text2 }}>{x.subcategoria}</td>
+                        <td style={{ padding: "8px 12px" }}><span style={{ background: T.info + "18", color: T.info, padding: "2px 7px", borderRadius: 5, fontSize: 9, fontWeight: 600 }}>{x.tipo}</span></td>
+                        <td style={{ padding: "8px 12px" }}><span style={{ background: T.accent + "18", color: T.accent, padding: "2px 7px", borderRadius: 5, fontSize: 9, fontWeight: 600 }}>{x.natureza}</span></td>
+                        {/* valor orçado — clicável para edição inline */}
+                        <td style={{ padding: "8px 12px", textAlign: "right" }}>
+                          {isEditing ? (
+                            <input
+                              autoFocus
+                              type="number"
+                              value={editingVal}
+                              onChange={e => setEditingVal(e.target.value)}
+                              onBlur={() => commitEdit(x.id)}
+                              onKeyDown={e => { if (e.key === "Enter") commitEdit(x.id); if (e.key === "Escape") setEditingCell(null); }}
+                              style={{ width: 110, padding: "3px 8px", background: T.inputBg || T.surface2, border: `1px solid ${T.info}`, borderRadius: 6, color: T.text, fontSize: 11, textAlign: "right", fontFamily: "inherit", outline: "none" }}
+                            />
+                          ) : (
+                            <span
+                              onClick={() => startEdit(x.id, x.valorOrcado)}
+                              title="Clique para editar"
+                              style={{ fontWeight: 700, color: T.info, cursor: "text", borderBottom: `1px dashed ${T.info}44`, paddingBottom: 1 }}
+                            >{fmt(x.valorOrcado)}</span>
+                          )}
                         </td>
-                        <td style={{ padding: "7px 12px", fontWeight: 700, color: T.info }}>{fmt(x.valorOrcado)}</td>
-                        <td style={{ padding: "7px 12px", fontWeight: 700, color: T.accent }}>{fmt(real)}</td>
-                        <td style={{ padding: "7px 12px", fontWeight: 800, color: dif >= 0 ? T.success : T.danger }}>{fmt(dif)}</td>
-                        <td style={{ padding: "7px 12px" }}>
-                          <button onClick={async () => { await sbFetch("orcamento",{method:"DELETE",id:x.id}); setOrcamento(prev => prev.filter(r => r.id !== x.id)); }}
-                            style={{ ...btnGhost, fontSize: 10, padding: "3px 7px", color: T.danger }}>✕</button>
+                        <td style={{ padding: "8px 12px", fontWeight: 600, color: T.accent, textAlign: "right" }}>{fmt(real)}</td>
+                        <td style={{ padding: "8px 12px", fontWeight: 700, color: dif >= 0 ? T.success : T.danger, textAlign: "right" }}>{fmt(dif)}</td>
+                        <td style={{ padding: "8px 12px" }}>
+                          <button onClick={async () => { await sbFetch("orcamento", { method: "DELETE", id: x.id }); setOrcamento(prev => prev.filter(r => r.id !== x.id)); }}
+                            style={{ background: "transparent", border: `1px solid ${T.border2}`, color: T.text3, borderRadius: 6, padding: "3px 8px", cursor: "pointer", fontSize: 10, fontFamily: "inherit" }}
+                            onMouseEnter={e => { e.currentTarget.style.color = T.danger; e.currentTarget.style.borderColor = T.danger + "66"; }}
+                            onMouseLeave={e => { e.currentTarget.style.color = T.text3; e.currentTarget.style.borderColor = T.border2; }}
+                          >✕</button>
                         </td>
                       </tr>
                     );
@@ -1928,12 +2607,12 @@ function DashboardFinanceiro({ T, receitas, setReceitas, custos, saldoBancos,
   return (
     <div>
       {/* Header + filtro mês */}
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end", marginBottom: 16, flexWrap: "wrap", gap: 10 }}>
+      <div className="rbim-dash-header" style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end", marginBottom: 16, flexWrap: "wrap", gap: 10 }}>
         <div>
           <div style={{ fontWeight: 900, fontSize: 16 }}>💚 Dashboard Financeiro</div>
           <div style={{ fontSize: 11, color: T.text3, marginTop: 2 }}>Entradas, saídas e fluxo de caixa</div>
         </div>
-        <div style={{ display: "flex", gap: 10, alignItems: "flex-end", flexWrap: "wrap" }}>
+        <div className="rbim-dash-filters" style={{ display: "flex", gap: 10, alignItems: "flex-end", flexWrap: "wrap" }}>
           <div>
             <label style={labelStyle}>Filtrar Mês/Ano</label>
             <select value={filtroMes} onChange={e => setFiltroMes(e.target.value)} style={{ ...inputStyle, width: 140 }}>
@@ -1957,7 +2636,7 @@ function DashboardFinanceiro({ T, receitas, setReceitas, custos, saldoBancos,
       </div>
 
       {/* KPIs do período */}
-      <div style={{ display: "flex", gap: 10, marginBottom: 16, flexWrap: "wrap" }}>
+      <div className="rbim-kpi-row" style={{ display: "flex", gap: 10, marginBottom: 16, flexWrap: "wrap" }}>
         {[
           { l: "Entradas" + (filtroMes !== "TODOS" ? ` (${filtroMes})` : "") + (filtroBanco !== "TODOS" ? ` · ${filtroBanco}` : ""), v: fmt(totalEntFilt), c: T.success, sub: `${receitasFilt.length} medições` },
           { l: "Saídas"   + (filtroMes !== "TODOS" ? ` (${filtroMes})` : "") + (filtroBanco !== "TODOS" ? ` · ${filtroBanco}` : ""), v: fmt(totalSaiFilt), c: T.danger,  sub: `${custosFilt.length} lançamentos` },
@@ -1978,7 +2657,7 @@ function DashboardFinanceiro({ T, receitas, setReceitas, custos, saldoBancos,
           Movimentação por Conta Bancária
           {filtroMes !== "TODOS" && <span style={{ fontSize: 11, color: T.text3, fontWeight: 400, marginLeft: 8 }}>({filtroMes})</span>}
         </div>
-        <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
+        <div className="rbim-bancos-row" style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
           {bancosFlow.map(b => (
             <div key={b.id} style={{ ...surface({ padding: "20px 22px" }), flex: 1, minWidth: 200 }}>
               <div style={{ fontWeight: 700, fontSize: 14, marginBottom: 3, fontFamily: T.fontDisplay||"inherit" }}>{b.nome}</div>
@@ -2016,7 +2695,7 @@ function DashboardFinanceiro({ T, receitas, setReceitas, custos, saldoBancos,
       </div>
 
       {/* Gráficos de fluxo de caixa */}
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14, marginBottom: 16 }}>
+      <div className="rbim-grid2-charts" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14, marginBottom: 16 }}>
 
         {/* Gráfico 1: Barras agrupadas Entradas vs Saídas por mês */}
         <div style={surface()}>
@@ -2371,7 +3050,7 @@ function VisaoGeral({ T, custos, totalReceitas, totalCustos, totalApagar, apagar
 
   return (<>
     {/* KPIs */}
-    <div style={{ display: "flex", gap: 10, marginBottom: 14, flexWrap: "wrap" }}>
+    <div className="rbim-kpi-row" style={{ display: "flex", gap: 10, marginBottom: 14, flexWrap: "wrap" }}>
       {[
         { l: "Total Receitas",   v: fmt(totalReceitas),                c: T.success, icon: "↑" },
         { l: "Total Custos",     v: fmt(totalCustos),                  c: T.danger,  icon: "↓" },
@@ -2388,7 +3067,7 @@ function VisaoGeral({ T, custos, totalReceitas, totalCustos, totalApagar, apagar
     </div>
 
     {/* Filtros */}
-    <div style={{ ...surface({ padding: "16px 20px", marginBottom: 16 }), display: "flex", gap: 12, flexWrap: "wrap", alignItems: "flex-end" }}>
+    <div className="rbim-filter-row" style={{ ...surface({ padding: "16px 20px", marginBottom: 16 }), display: "flex", gap: 12, flexWrap: "wrap", alignItems: "flex-end" }}>
       {[["Obra", fObra, handleObraChange, obrasList], ["Mês", fMes, setFMes, mesesList], ["Categoria", fCat, setFCat, catsNames]].map(([lbl, val, set, opts]) => (
         <div key={lbl} style={{ display: "flex", flexDirection: "column", gap: 3 }}>
           <label style={labelStyle}>{lbl}</label>
@@ -2406,7 +3085,7 @@ function VisaoGeral({ T, custos, totalReceitas, totalCustos, totalApagar, apagar
 
     {/* ── CENÁRIO A: todas as obras ── */}
     {!modoObra && (
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14, marginBottom: 14 }}>
+      <div className="rbim-grid2-charts" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14, marginBottom: 14 }}>
         <GraficoGastosPorObra T={T} data={porObra} />
         <GraficoCategorias T={T} porCat={porCat} porSub={porSub} selectedCat={selectedCat} onSelectCat={selectCat} onReset={resetCat} />
       </div>
@@ -2414,7 +3093,7 @@ function VisaoGeral({ T, custos, totalReceitas, totalCustos, totalApagar, apagar
 
     {/* ── CENÁRIO B: obra específica ── */}
     {modoObra && (
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14, marginBottom: 14 }}>
+      <div className="rbim-grid2-charts" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14, marginBottom: 14 }}>
         <GraficoCategorias T={T} porCat={porCat} porSub={porSub} selectedCat={selectedCat} onSelectCat={selectCat} onReset={resetCat} />
         {/* subcategorias: gráfico de barras ou mensagem inicial */}
         <div style={{ ...surface(), display: "flex", flexDirection: "column" }}>
@@ -2461,7 +3140,7 @@ function VisaoGeral({ T, custos, totalReceitas, totalCustos, totalApagar, apagar
     )}
 
     {/* ── Natureza do Gasto (independente do cenário) ── */}
-    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14, marginBottom: 14 }}>
+    <div className="rbim-grid2-charts" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14, marginBottom: 14 }}>
       <GraficoNatureza T={T} data={custos} />
       <GraficoEvolucaoMensal T={T} data={custos} />
     </div>
@@ -2547,7 +3226,7 @@ function CadastrosTab({T,obras,setObras,bancos,setBancos,cats,setCats,inputStyle
 
   return (
     <div>
-      <div style={{display:"flex",gap:6,marginBottom:16}}>
+      <div className="rbim-sub-tabs" style={{display:"flex",gap:6,marginBottom:16}}>
         {ST.map(({id,l})=>(
           <button key={id} onClick={()=>setSubTab(id)} style={{padding:"7px 14px",borderRadius:7,border:"none",cursor:"pointer",fontWeight:700,fontSize:11,fontFamily:T.fontFamily||"inherit",
             background:subTab===id?T.accent:T.surface2,color:subTab===id?"#fff":T.text2}}>
@@ -2558,7 +3237,7 @@ function CadastrosTab({T,obras,setObras,bancos,setBancos,cats,setCats,inputStyle
 
       {/* OBRAS */}
       {subTab==="obras" && (
-        <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:16}}>
+        <div className="rbim-cadastro-grid" style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:16}}>
           <div style={surface()}>
             <div style={{fontWeight:700,marginBottom:14,fontSize:14,fontFamily:T.fontDisplay||"inherit",letterSpacing:"-0.01em",color:T.accent}}>Nova Obra</div>
             <div style={{display:"flex",flexDirection:"column",gap:10}}>
@@ -2592,7 +3271,7 @@ function CadastrosTab({T,obras,setObras,bancos,setBancos,cats,setCats,inputStyle
 
       {/* BANCOS */}
       {subTab==="bancos" && (
-        <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:16}}>
+        <div className="rbim-cadastro-grid" style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:16}}>
           <div style={surface()}>
             <div style={{fontWeight:700,marginBottom:14,fontSize:14,fontFamily:T.fontDisplay||"inherit",letterSpacing:"-0.01em",color:T.accent}}>Nova Conta Bancária</div>
             <div style={{display:"flex",flexDirection:"column",gap:10}}>
@@ -2626,7 +3305,7 @@ function CadastrosTab({T,obras,setObras,bancos,setBancos,cats,setCats,inputStyle
 
       {/* CATEGORIAS */}
       {subTab==="cats" && (
-        <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:16}}>
+        <div className="rbim-cadastro-grid" style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:16}}>
           <div style={surface()}>
             <div style={{fontWeight:700,marginBottom:14,fontSize:14,fontFamily:T.fontDisplay||"inherit",letterSpacing:"-0.01em",color:T.accent}}>Nova Categoria</div>
             <div style={{display:"flex",flexDirection:"column",gap:10}}>
@@ -2675,7 +3354,7 @@ function CadastrosTab({T,obras,setObras,bancos,setBancos,cats,setCats,inputStyle
 
       {/* TIPOS DE CUSTO */}
       {subTab==="tipos" && (
-        <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:16}}>
+        <div className="rbim-cadastro-grid" style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:16}}>
           <div style={surface()}>
             <div style={{fontWeight:700,marginBottom:14,fontSize:14,fontFamily:T.fontDisplay||"inherit",letterSpacing:"-0.01em",color:T.accent}}>Novo Tipo de Custo</div>
             <div style={{display:"flex",flexDirection:"column",gap:10}}>
@@ -2730,7 +3409,7 @@ function CadastrosTab({T,obras,setObras,bancos,setBancos,cats,setCats,inputStyle
 
       {/* NATUREZAS DO GASTO */}
       {subTab==="naturezas" && (
-        <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:16}}>
+        <div className="rbim-cadastro-grid" style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:16}}>
           <div style={surface()}>
             <div style={{fontWeight:700,marginBottom:14,fontSize:14,fontFamily:T.fontDisplay||"inherit",letterSpacing:"-0.01em",color:T.accent}}>Nova Natureza do Gasto</div>
             <div style={{display:"flex",flexDirection:"column",gap:10}}>
@@ -2788,6 +3467,241 @@ function CadastrosTab({T,obras,setObras,bancos,setBancos,cats,setCats,inputStyle
 }
 
 // ─── HELPERS MODAL ────────────────────────────────────────────────────────────
+
+// ─── CASCADE SELECTOR ────────────────────────────────────────────────────────
+/**
+ * CascadeSelector
+ * Seleção visual em 3 etapas: Categoria → Subcategoria → (Tipo+Natureza auto)
+ * Props:
+ *   cats       {array}   lista de categorias com subs
+ *   custos     {array}   histórico de lançamentos (para recentes + autofill)
+ *   categoria  {string}  valor atual
+ *   subcategoria{string} valor atual
+ *   tipo       {string}
+ *   natureza   {string}
+ *   onChange   {fn}      ({categoria, subcategoria, tipo, natureza}) => void
+ *   T          {object}  tema
+ */
+function CascadeSelector({ cats, custos, categoria, subcategoria, tipo, natureza, onChange, T }) {
+  const [busca, setBusca] = useState("");
+  const inputRef = useRef(null);
+
+  // ── recentes: últimas 5 combinações únicas do histórico ──────────────────
+  const recentes = useMemo(() => {
+    const seen = new Set();
+    const result = [];
+    for (const c of [...custos].reverse()) {
+      if (!c.categoria || !c.subcategoria) continue;
+      const key = `${c.categoria}||${c.subcategoria}`;
+      if (!seen.has(key)) {
+        seen.add(key);
+        const af = SUB_AUTOFILL[c.subcategoria] || {tipo: c.tipo||"Direto", natureza: c.natureza||"Material"};
+        result.push({ categoria: c.categoria, subcategoria: c.subcategoria, tipo: af.tipo, natureza: af.natureza });
+        if (result.length >= 5) break;
+      }
+    }
+    return result;
+  }, [custos]);
+
+  // ── busca filtra cat+sub ─────────────────────────────────────────────────
+  const buscaLower = busca.trim().toLowerCase();
+  const catsFiltradas = useMemo(() => {
+    if (!buscaLower) return cats;
+    return cats.map(c => ({
+      ...c,
+      subs: c.subs.filter(s => s.toLowerCase().includes(buscaLower) || c.nome.toLowerCase().includes(buscaLower))
+    })).filter(c => c.subs.length > 0 || c.nome.toLowerCase().includes(buscaLower));
+  }, [cats, buscaLower]);
+
+  const pickSub = (cat, sub) => {
+    const af = SUB_AUTOFILL[sub] || { tipo: tipo || "Direto", natureza: natureza || "Material" };
+    onChange({ categoria: cat, subcategoria: sub, tipo: af.tipo, natureza: af.natureza });
+    setBusca("");
+  };
+
+  const pickCat = (cat) => {
+    onChange({ categoria: cat, subcategoria: "", tipo, natureza });
+  };
+
+  const cor = CAT_COLORS[categoria] || T.accent;
+  const icon = CAT_ICONS[categoria] || "📁";
+  const subsAtivas = categoria ? (cats.find(c => c.nome === categoria)?.subs || []) : [];
+
+  return (
+    <div style={{ marginBottom: 14 }}>
+      <label style={{ fontSize: 10, fontWeight: 700, color: T.accent, textTransform: "uppercase", letterSpacing: "0.08em", display: "block", marginBottom: 6 }}>
+        Categoria → Subcategoria *
+      </label>
+
+      {/* ── RECENTES ─────────────────────────────────────────────────────── */}
+      {recentes.length > 0 && !busca && !categoria && (
+        <div style={{ marginBottom: 10 }}>
+          <div style={{ fontSize: 9, color: T.text3, textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: 5, fontWeight: 600 }}>⏱ Recentes</div>
+          <div style={{ display: "flex", flexWrap: "wrap", gap: 5 }}>
+            {recentes.map((r, i) => (
+              <button key={i} type="button" onClick={() => pickSub(r.categoria, r.subcategoria)}
+                style={{
+                  background: (CAT_COLORS[r.categoria] || T.accent) + "18",
+                  border: `1px solid ${(CAT_COLORS[r.categoria] || T.accent)}44`,
+                  color: CAT_COLORS[r.categoria] || T.accent,
+                  borderRadius: 8, padding: "4px 10px", cursor: "pointer",
+                  fontSize: 10, fontWeight: 600, fontFamily: "inherit",
+                  display: "flex", alignItems: "center", gap: 5, transition: "all 0.12s",
+                }}
+                onMouseEnter={e => { e.currentTarget.style.background = (CAT_COLORS[r.categoria] || T.accent) + "30"; }}
+                onMouseLeave={e => { e.currentTarget.style.background = (CAT_COLORS[r.categoria] || T.accent) + "18"; }}
+              >
+                <span>{CAT_ICONS[r.categoria] || "📁"}</span>
+                <span style={{ color: T.text3, fontSize: 9 }}>{r.categoria.split(" ")[0]}</span>
+                <span style={{ color: T.text2 }}>→</span>
+                <span>{r.subcategoria}</span>
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* ── BUSCA ────────────────────────────────────────────────────────── */}
+      <div style={{ position: "relative", marginBottom: 8 }}>
+        <input
+          ref={inputRef}
+          type="text"
+          value={busca}
+          onChange={e => { setBusca(e.target.value); if (e.target.value) onChange({ categoria: "", subcategoria: "", tipo, natureza }); }}
+          placeholder="🔍 Buscar categoria ou subcategoria..."
+          style={{
+            width: "100%", boxSizing: "border-box",
+            background: T.inputBg || T.surface2, border: `1px solid ${T.border2}`,
+            color: T.text, borderRadius: 10, padding: "9px 13px",
+            fontSize: 12, outline: "none", fontFamily: "inherit",
+          }}
+        />
+        {busca && (
+          <button type="button" onClick={() => setBusca("")}
+            style={{ position: "absolute", right: 10, top: "50%", transform: "translateY(-50%)", background: "none", border: "none", color: T.text3, cursor: "pointer", fontSize: 14 }}>
+            ✕
+          </button>
+        )}
+      </div>
+
+      {/* ── RESULTADOS DE BUSCA ───────────────────────────────────────────── */}
+      {busca && (
+        <div style={{
+          border: `1px solid ${T.border2}`, borderRadius: 10, overflow: "hidden",
+          maxHeight: 240, overflowY: "auto", marginBottom: 8,
+          boxShadow: T.shadow,
+        }}>
+          {catsFiltradas.length === 0 ? (
+            <div style={{ padding: "14px", textAlign: "center", color: T.text3, fontSize: 12 }}>Nenhum resultado</div>
+          ) : catsFiltradas.map(c => (
+            <div key={c.id}>
+              <div style={{ padding: "6px 12px", background: T.surface2, fontSize: 10, fontWeight: 700, color: CAT_COLORS[c.nome] || T.text3, display: "flex", alignItems: "center", gap: 6 }}>
+                <span>{CAT_ICONS[c.nome] || "📁"}</span>{c.nome}
+              </div>
+              {c.subs.map(s => (
+                <div key={s} onClick={() => pickSub(c.nome, s)}
+                  style={{
+                    padding: "8px 12px 8px 28px", cursor: "pointer", fontSize: 12,
+                    color: T.text2, borderTop: `1px solid ${T.border}`, transition: "background 0.1s",
+                  }}
+                  onMouseEnter={e => e.currentTarget.style.background = (CAT_COLORS[c.nome] || T.accent) + "18"}
+                  onMouseLeave={e => e.currentTarget.style.background = "transparent"}
+                >
+                  {s}
+                </div>
+              ))}
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* ── SELEÇÃO EM CASCATA (sem busca) ───────────────────────────────── */}
+      {!busca && (
+        <>
+          {/* ETAPA 1: CATEGORIAS */}
+          {!categoria && (
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(130px,1fr))", gap: 6 }}>
+              {cats.map(c => (
+                <button key={c.id} type="button" onClick={() => pickCat(c.nome)}
+                  style={{
+                    background: (CAT_COLORS[c.nome] || T.accent) + "12",
+                    border: `1px solid ${(CAT_COLORS[c.nome] || T.accent)}33`,
+                    borderRadius: 10, padding: "8px 10px", cursor: "pointer",
+                    fontFamily: "inherit", textAlign: "left", transition: "all 0.12s",
+                    display: "flex", flexDirection: "column", gap: 3,
+                  }}
+                  onMouseEnter={e => { e.currentTarget.style.background = (CAT_COLORS[c.nome] || T.accent) + "25"; e.currentTarget.style.borderColor = (CAT_COLORS[c.nome] || T.accent) + "66"; }}
+                  onMouseLeave={e => { e.currentTarget.style.background = (CAT_COLORS[c.nome] || T.accent) + "12"; e.currentTarget.style.borderColor = (CAT_COLORS[c.nome] || T.accent) + "33"; }}
+                >
+                  <span style={{ fontSize: 18 }}>{CAT_ICONS[c.nome] || "📁"}</span>
+                  <span style={{ fontSize: 10, fontWeight: 700, color: CAT_COLORS[c.nome] || T.accent, lineHeight: 1.2 }}>{c.nome}</span>
+                  <span style={{ fontSize: 9, color: T.text3 }}>{c.subs.length} itens</span>
+                </button>
+              ))}
+            </div>
+          )}
+
+          {/* ETAPA 2: CATEGORIA SELECIONADA → SUBCATEGORIAS */}
+          {categoria && (
+            <div>
+              {/* breadcrumb */}
+              <div style={{
+                display: "flex", alignItems: "center", gap: 8, marginBottom: 8,
+                padding: "8px 12px", background: cor + "15",
+                border: `1px solid ${cor}33`, borderRadius: 8,
+              }}>
+                <span style={{ fontSize: 16 }}>{icon}</span>
+                <span style={{ fontWeight: 700, fontSize: 12, color: cor }}>{categoria}</span>
+                <button type="button" onClick={() => onChange({ categoria: "", subcategoria: "", tipo, natureza })}
+                  style={{ marginLeft: "auto", background: "none", border: "none", color: T.text3, cursor: "pointer", fontSize: 12, fontFamily: "inherit" }}>
+                  ✕ trocar
+                </button>
+              </div>
+
+              {/* subcategorias como pills */}
+              <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
+                {subsAtivas.map(s => {
+                  const ativo = s === subcategoria;
+                  return (
+                    <button key={s} type="button" onClick={() => pickSub(categoria, s)}
+                      style={{
+                        background: ativo ? cor : cor + "15",
+                        border: `1px solid ${ativo ? cor : cor + "44"}`,
+                        color: ativo ? "#fff" : cor,
+                        borderRadius: 8, padding: "6px 14px", cursor: "pointer",
+                        fontSize: 11, fontWeight: ativo ? 700 : 500,
+                        fontFamily: "inherit", transition: "all 0.12s",
+                      }}
+                      onMouseEnter={e => { if (!ativo) { e.currentTarget.style.background = cor + "30"; } }}
+                      onMouseLeave={e => { if (!ativo) { e.currentTarget.style.background = cor + "15"; } }}
+                    >
+                      {s}
+                    </button>
+                  );
+                })}
+              </div>
+
+              {/* ETAPA 3: tipo+natureza autofill */}
+              {subcategoria && (
+                <div style={{
+                  marginTop: 10, padding: "8px 12px",
+                  background: T.success + "12", border: `1px solid ${T.success}33`,
+                  borderRadius: 8, display: "flex", gap: 16, alignItems: "center", flexWrap: "wrap",
+                }}>
+                  <span style={{ fontSize: 10, color: T.success, fontWeight: 700 }}>✓ {subcategoria}</span>
+                  <span style={{ fontSize: 10, color: T.text3 }}>Tipo: <strong style={{ color: T.info }}>{tipo}</strong></span>
+                  <span style={{ fontSize: 10, color: T.text3 }}>Natureza: <strong style={{ color: T.accent }}>{natureza}</strong></span>
+                  <span style={{ fontSize: 9, color: T.text3, marginLeft: "auto" }}>preenchido automaticamente</span>
+                </div>
+              )}
+            </div>
+          )}
+        </>
+      )}
+    </div>
+  );
+}
+
 function MH({title,onClose,T}) {
   return (
     <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:20,paddingBottom:16,borderBottom:`1px solid ${T.border}`}}>
@@ -2796,21 +3710,18 @@ function MH({title,onClose,T}) {
     </div>
   );
 }
-function G2({children}) { return <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:14,marginBottom:14}}>{children}</div>; }
+function G2({children}) { return <div className="rbim-g2-responsive" style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:14,marginBottom:14}}>{children}</div>; }
 function FR({children}) { return <div style={{marginBottom:14}}>{children}</div>; }
 
 // ─── MODAL CUSTO ──────────────────────────────────────────────────────────────
-function ModalCusto({T,obras,bancos,cats,inputStyle,labelStyle,btnPrimary,onSave,onClose,initial,fornecedores=[]}) {
+function ModalCusto({T,obras,bancos,cats,custos=[],inputStyle,labelStyle,btnPrimary,onSave,onClose,initial,fornecedores=[]}) {
   const isEdit = !!initial;
   const [f,setF] = useState(()=>initial
     ? {...initial}
     : {obra:"",data:todayStr(),banco:"",fornecedor:"",categoria:"",subcategoria:"",tipo:"Direto",natureza:"Mão de Obra",valor:0,obs:"",pagador:"RBIM"}
   );
   const u = k => v => setF(p=>({...p,[k]:v}));
-  const subs = f.categoria ? (cats.find(c=>c.nome===f.categoria)?.subs||[]) : [];
   const si = {...inputStyle};
-  const S = ({lbl,k,opts}) => (<FR><label style={labelStyle}>{lbl}</label><select value={f[k]} onChange={e=>u(k)(e.target.value)} style={si}><option value="">-- selecione --</option>{opts.map(o=><option key={o}>{o}</option>)}</select></FR>);
-  const I = ({lbl,k,type="text",ph=""}) => (<FR><label style={labelStyle}>{lbl}</label><input type={type} value={f[k]} onChange={e=>u(k)(e.target.value)} placeholder={ph} style={si}/></FR>);
   return (<>
     <MH title={isEdit ? "✏️ Editar Lançamento" : "💸 Lançar Custo"} onClose={onClose} T={T}/>
     {isEdit && (
@@ -2819,23 +3730,24 @@ function ModalCusto({T,obras,bancos,cats,inputStyle,labelStyle,btnPrimary,onSave
       </div>
     )}
     <CurrencyInput label="Valor (R$)" required value={f.valor} onChange={v=>u("valor")(v)} inputStyle={inputStyle} labelStyle={labelStyle} T={T}/>
-    <G2><S lbl="Obra *" k="obra" opts={obras.map(o=>o.nome)}/><I lbl="Data *" k="data" type="date"/></G2>
-    <I lbl="Descrição / Observação" k="obs" ph="Ex: COMPRA DE CIMENTO"/>
     <G2>
-      <FR><label style={labelStyle}>Categoria *</label><select value={f.categoria} onChange={e=>{u("categoria")(e.target.value);u("subcategoria")("");}} style={si}><option value="">-- selecione --</option>{cats.map(c=><option key={c.id}>{c.nome}</option>)}</select></FR>
-      <S lbl="Subcategoria *" k="subcategoria" opts={subs}/>
+      <FR><label style={labelStyle}>Obra *</label><select value={f.obra} onChange={e=>u("obra")(e.target.value)} style={si}><option value="">-- selecione --</option>{obras.map(o=><option key={o.id||o.nome}>{o.nome}</option>)}</select></FR>
+      <FR><label style={labelStyle}>Data *</label><input type="date" value={f.data} onChange={e=>u("data")(e.target.value)} style={si}/></FR>
     </G2>
-    <G2><S lbl="Tipo de Custo" k="tipo" opts={TIPOS_CUSTO}/><S lbl="Natureza" k="natureza" opts={NATUREZAS}/></G2>
-    <G2><S lbl="Pago por" k="pagador" opts={["RBIM","JF"]}/><S lbl="Banco de Saída" k="banco" opts={bancos.map(b=>b.nome)}/></G2>
-    <FornecedorInput
-      value={f.fornecedor}
-      onChange={v=>u("fornecedor")(v)}
-      fornecedores={fornecedores}
-      inputStyle={si}
-      labelStyle={labelStyle}
+    <FR><label style={labelStyle}>Descrição / Observação</label><input type="text" value={f.obs||""} onChange={e=>u("obs")(e.target.value)} placeholder="Ex: COMPRA DE CIMENTO" style={si}/></FR>
+    <CascadeSelector
+      cats={cats} custos={custos}
+      categoria={f.categoria} subcategoria={f.subcategoria}
+      tipo={f.tipo} natureza={f.natureza}
+      onChange={({categoria,subcategoria,tipo,natureza})=>setF(p=>({...p,categoria,subcategoria,tipo,natureza}))}
       T={T}
     />
-    <button onClick={()=>{if(!f.obra||!f.valor||!f.categoria)return alert("Obra, categoria e valor obrigatórios.");onSave({...f});}}
+    <G2>
+      <FR><label style={labelStyle}>Pago por</label><select value={f.pagador} onChange={e=>u("pagador")(e.target.value)} style={si}>{["RBIM","JF"].map(x=><option key={x}>{x}</option>)}</select></FR>
+      <FR><label style={labelStyle}>Banco de Saída</label><select value={f.banco} onChange={e=>u("banco")(e.target.value)} style={si}><option value="">-- selecione --</option>{bancos.map(b=><option key={b.id||b.nome}>{b.nome}</option>)}</select></FR>
+    </G2>
+    <FornecedorInput value={f.fornecedor} onChange={v=>u("fornecedor")(v)} fornecedores={fornecedores} inputStyle={si} labelStyle={labelStyle} T={T}/>
+    <button onClick={()=>{if(!f.obra||!f.valor||!f.categoria||!f.subcategoria)return alert("Obra, categoria, subcategoria e valor obrigatórios.");onSave({...f});}}
       style={{...btnPrimary,width:"100%",background:isEdit?T.info:undefined}}>
       {isEdit ? "✓ Salvar Edição" : "✓ Salvar Lançamento"}
     </button>
@@ -2889,14 +3801,13 @@ function ModalAPagar({T,obras,bancos,cats,inputStyle,labelStyle,btnPrimary,onSav
       <FR><label style={labelStyle}>Vencimento *</label><input type="date" value={f.vencimento} onChange={e=>u("vencimento")(e.target.value)} style={si}/></FR>
     </G2>
     <FR><label style={labelStyle}>Descrição *</label><input value={f.descricao} onChange={e=>u("descricao")(e.target.value)} placeholder="Ex: PARCELA MATERIAL" style={si}/></FR>
-    <G2>
-      <FR><label style={labelStyle}>Categoria *</label><select value={f.categoria} onChange={e=>{u("categoria")(e.target.value);u("subcategoria")("");}} style={si}><option value="">-- selecione --</option>{cats.map(c=><option key={c.id}>{c.nome}</option>)}</select></FR>
-      <FR><label style={labelStyle}>Subcategoria *</label><select value={f.subcategoria} onChange={e=>u("subcategoria")(e.target.value)} style={si}><option value="">-- selecione --</option>{subs.map(s=><option key={s}>{s}</option>)}</select></FR>
-    </G2>
-    <G2>
-      <FR><label style={labelStyle}>Tipo</label><select value={f.tipo} onChange={e=>u("tipo")(e.target.value)} style={si}>{TIPOS_CUSTO.map(t=><option key={t}>{t}</option>)}</select></FR>
-      <FR><label style={labelStyle}>Natureza</label><select value={f.natureza} onChange={e=>u("natureza")(e.target.value)} style={si}>{NATUREZAS.map(n=><option key={n}>{n}</option>)}</select></FR>
-    </G2>
+    <CascadeSelector
+      cats={cats} custos={[]}
+      categoria={f.categoria} subcategoria={f.subcategoria}
+      tipo={f.tipo} natureza={f.natureza}
+      onChange={({categoria,subcategoria,tipo,natureza})=>setF(p=>({...p,categoria,subcategoria,tipo,natureza}))}
+      T={T}
+    />
     <G2>
       <FR><label style={labelStyle}>Banco</label><select value={f.banco} onChange={e=>u("banco")(e.target.value)} style={si}><option value="">-- selecione --</option>{bancos.map(b=><option key={b.id}>{b.nome}</option>)}</select></FR>
       <FR><label style={labelStyle}>Pago por</label><select value={f.pagador} onChange={e=>u("pagador")(e.target.value)} style={si}>{["RBIM","JF"].map(x=><option key={x}>{x}</option>)}</select></FR>
