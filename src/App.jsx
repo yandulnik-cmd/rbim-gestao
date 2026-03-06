@@ -1188,46 +1188,20 @@ export default function App() {
 
       {/* ════ OBRAS ══════════════════════════════════════════════════════════ */}
       {tab==="obras" && (
-        <div>
-          <div style={{display:"flex",justifyContent:"flex-end",marginBottom:12}}>
-            <button onClick={()=>openModal("obra_new")} style={btnPrimary}>+ Nova Obra</button>
-          </div>
-          <div style={{display:"flex",flexDirection:"column",gap:12}}>
-            {obrasMetrica.map(o=>(
-              <div key={o.id} style={{...surface({padding:"24px 28px",border:`1px solid ${o.lucro<0?T.danger+"33":T.border}`,borderLeft:`3px solid ${o.lucro<0?T.danger:T.success}`})}}>
-                <div className="rbim-obra-card-header" style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:14}}>
-                  <div>
-                    <div style={{fontWeight:700,fontSize:17,fontFamily:T.fontDisplay||"inherit",letterSpacing:"-0.02em"}}>{o.nome}</div>
-                    <div style={{fontSize:11,color:T.text3,marginTop:4,display:"flex",gap:6,alignItems:"center"}}>
-                      <span style={{opacity:0.6}}>●</span> {o.inicio} → {o.fim}
-                    </div>
-                  </div>
-                  <div style={{display:"flex",gap:8,alignItems:"center"}}>
-                    <span style={{background:({Em_andamento:T.accent2,Planejada:T.info,Pausada:T.danger,Concluída:T.success}[o.status.replace(" ","_")]||T.accent)+"18",
-                      color:({Em_andamento:T.accent2,Planejada:T.info,Pausada:T.danger,Concluída:T.success}[o.status.replace(" ","_")]||T.accent),
-                      padding:"3px 12px",borderRadius:6,fontSize:11,fontWeight:600,letterSpacing:"0.02em"}}>{o.status}</span>
-                    <button onClick={()=>openModal("obra_edit",o)} style={btnGhost}>✏️ Editar</button>
-                  </div>
-                </div>
-                <div className="rbim-obra-card-grid" style={{display:"grid",gridTemplateColumns:"repeat(5,1fr)",gap:10,marginBottom:16}}>
-                  {[["Contrato",fmt(o.contrato),T.text],["Orçado",fmt(o.orc),T.info],["Gasto",fmt(o.gasto),T.danger],["Recebido",fmt(o.rec),T.success],["Lucro Esperado",fmt(o.lucro),o.lucro>=0?T.success:T.danger]].map(([l,v,c])=>(
-                    <div key={l} style={{background:T.surface2,borderRadius:10,padding:"12px 14px",border:`1px solid ${T.border}`}}>
-                      <div style={{fontSize:9,color:T.text3,marginBottom:4,textTransform:"uppercase",letterSpacing:"0.07em",fontWeight:600}}>{l}</div>
-                      <div style={{fontSize:14,fontWeight:700,color:c,fontFamily:T.fontDisplay||"inherit",letterSpacing:"-0.01em"}}>{v}</div>
-                    </div>
-                  ))}
-                </div>
-                <div style={{marginBottom:4,display:"flex",justifyContent:"space-between"}}>
-                  <span style={{fontSize:11,color:T.text3}}>Execução orçamentária</span>
-                  <span style={{fontSize:11,fontWeight:700,color:o.pct>80?T.danger:o.pct>50?T.accent2:T.success}}>{o.pct.toFixed(1)}%</span>
-                </div>
-                <div style={{background:T.surface2,borderRadius:999,height:6,overflow:"hidden",border:`1px solid ${T.border}`}}>
-                  <div style={{height:"100%",borderRadius:999,width:`${o.pct}%`,background:o.pct>80?T.danger:o.pct>50?`linear-gradient(90deg,${T.accent2},${T.accent})`:T.success,transition:"width 0.6s cubic-bezier(0.4,0,0.2,1)"}}/>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
+        <ObrasAba
+          T={T} dark={dark}
+          obras={obrasMetrica}
+          custos={custos}
+          receitas={receitas}
+          orcamento={orcamento}
+          cats={cats}
+          openModal={openModal}
+          surface={surface}
+          inputStyle={inputStyle}
+          labelStyle={labelStyle}
+          btnPrimary={btnPrimary}
+          btnGhost={btnGhost}
+        />
       )}
 
       {/* ════ CUSTOS ABA ═════════════════════════════════════════════════════ */}
@@ -1514,6 +1488,339 @@ export default function App() {
       </div>
     </div>
     </ThemeCtx.Provider>
+  );
+}
+
+// ─── OBRAS ABA — DASHBOARD POR OBRA ──────────────────────────────────────────
+function ObrasAba({ T, dark, obras, custos, receitas, orcamento, cats, openModal,
+  surface, inputStyle, labelStyle, btnPrimary, btnGhost }) {
+
+  const [selObra, setSelObra] = useState("");
+  const [drillCat, setDrillCat] = useState(null); // categoria selecionada para drill-down
+
+  // obra ativa (primeira se nenhuma selecionada)
+  const obraAtiva = useMemo(() => {
+    if (selObra) return obras.find(o => o.nome === selObra) || null;
+    return obras.length > 0 ? obras[0] : null;
+  }, [selObra, obras]);
+
+  // sincroniza seleção
+  useEffect(() => {
+    if (!selObra && obras.length > 0) setSelObra(obras[0].nome);
+  }, [obras, selObra]);
+
+  // dados filtrados pela obra ativa
+  const obraCustos = useMemo(() => obraAtiva ? custos.filter(c => c.obra === obraAtiva.nome) : [], [custos, obraAtiva]);
+  const obraReceitas = useMemo(() => obraAtiva ? receitas.filter(r => r.obra === obraAtiva.nome) : [], [receitas, obraAtiva]);
+  const obraOrcamento = useMemo(() => obraAtiva ? orcamento.filter(x => x.obra === obraAtiva.nome) : [], [orcamento, obraAtiva]);
+
+  // KPIs
+  const valorOrcado = obraAtiva?.orc || 0;
+  const valorGasto = obraAtiva?.gasto || 0;
+  const valorRecebido = obraAtiva?.rec || 0;
+  const saldoCaixa = valorRecebido - valorGasto;
+  const margemLucro = valorRecebido > 0 ? ((valorRecebido - valorGasto) / valorRecebido * 100) : 0;
+  const desvioCusto = valorGasto - valorOrcado;
+  const pctOrcConsum = valorOrcado > 0 ? Math.min((valorGasto / valorOrcado) * 100, 150) : 0;
+  const contratoVal = obraAtiva?.contrato || 0;
+
+  // Curva S — acumulado mensal
+  const curvaS = useMemo(() => {
+    if (!obraAtiva) return [];
+    const mesesSet = new Set([
+      ...obraCustos.map(c => getMes(c.data)),
+      ...obraReceitas.map(r => getMes(r.data)),
+    ]);
+    const meses = [...mesesSet].filter(Boolean).sort(sortMes);
+    let accOrc = 0, accGasto = 0, accRec = 0;
+    // distribuir orçamento uniformemente nos meses se não houver detalhe
+    const orcMensal = meses.length > 0 ? valorOrcado / meses.length : 0;
+    return meses.map(mes => {
+      accOrc += orcMensal;
+      accGasto += obraCustos.filter(c => getMes(c.data) === mes).reduce((s, c) => s + c.valor, 0);
+      accRec += obraReceitas.filter(r => getMes(r.data) === mes).reduce((s, r) => s + r.valor, 0);
+      return { mes, orcado: Math.round(accOrc), gasto: Math.round(accGasto), recebido: Math.round(accRec) };
+    });
+  }, [obraAtiva, obraCustos, obraReceitas, valorOrcado]);
+
+  // Medições por mês
+  const medicoesMes = useMemo(() => {
+    const m = {};
+    obraReceitas.forEach(r => { const k = getMes(r.data); m[k] = (m[k] || 0) + r.valor; });
+    return Object.keys(m).sort(sortMes).map(k => ({ mes: k, valor: m[k] }));
+  }, [obraReceitas]);
+
+  // Custos por natureza (Material, Mão de Obra, Equipamento)
+  const porNatureza = useMemo(() => {
+    const m = {};
+    obraCustos.forEach(d => { m[d.natureza] = (m[d.natureza] || 0) + d.valor; });
+    return Object.entries(m).map(([name, value]) => ({ name, value })).sort((a, b) => b.value - a.value);
+  }, [obraCustos]);
+
+  // Custos por categoria
+  const porCategoria = useMemo(() => {
+    const m = {};
+    obraCustos.forEach(d => { m[d.categoria] = (m[d.categoria] || 0) + d.valor; });
+    return Object.entries(m).map(([name, value]) => ({ name, value })).sort((a, b) => b.value - a.value);
+  }, [obraCustos]);
+
+  // Drill-down: subcategorias da categoria selecionada
+  const porSubcat = useMemo(() => {
+    if (!drillCat) return [];
+    const m = {};
+    obraCustos.filter(d => d.categoria === drillCat).forEach(d => { m[d.subcategoria] = (m[d.subcategoria] || 0) + d.valor; });
+    return Object.entries(m).map(([name, value]) => ({ name, value })).sort((a, b) => b.value - a.value);
+  }, [obraCustos, drillCat]);
+
+  // Curva ABC (Pareto) — top itens por valor, com acumulado %
+  const curvaABC = useMemo(() => {
+    const m = {};
+    obraCustos.forEach(d => {
+      const key = `${d.categoria} > ${d.subcategoria}`;
+      m[key] = (m[key] || 0) + d.valor;
+    });
+    const sorted = Object.entries(m).map(([name, value]) => ({ name, value })).sort((a, b) => b.value - a.value);
+    const total = sorted.reduce((s, d) => s + d.value, 0);
+    let acc = 0;
+    return sorted.slice(0, 12).map(d => {
+      acc += d.value;
+      return { ...d, pctAcc: total > 0 ? (acc / total * 100) : 0, nameShort: d.name.length > 25 ? d.name.slice(0, 22) + "…" : d.name };
+    });
+  }, [obraCustos]);
+
+  // Tabela auditoria — filtrada por drill
+  const tabelaAuditoria = useMemo(() => {
+    let data = [...obraCustos];
+    if (drillCat) data = data.filter(d => d.categoria === drillCat);
+    return data.sort((a, b) => new Date(b.data) - new Date(a.data)).slice(0, 30);
+  }, [obraCustos, drillCat]);
+
+  const tt = { background: dark ? "rgba(10,16,28,0.96)" : "rgba(255,255,255,0.97)", backdropFilter: "blur(16px)", border: `1px solid ${T.border2}`, borderRadius: 10, color: T.text, fontSize: 11, boxShadow: T.shadow };
+
+  if (!obraAtiva) return (
+    <div style={{ ...surface({ textAlign: "center", padding: "60px 20px" }) }}>
+      <div style={{ fontSize: 40, marginBottom: 12 }}>🏗️</div>
+      <div style={{ fontWeight: 700, fontSize: 16, marginBottom: 8 }}>Nenhuma obra cadastrada</div>
+      <button onClick={() => openModal("obra_new")} style={btnPrimary}>+ Cadastrar Primeira Obra</button>
+    </div>
+  );
+
+  return (
+    <div>
+      {/* ═══ 1. FILTROS GLOBAIS ═══ */}
+      <div className="rbim-filter-row" style={{ ...surface({ padding: "14px 20px", marginBottom: 16 }), display: "flex", gap: 12, alignItems: "center", flexWrap: "wrap" }}>
+        <div style={{ flex: 1, minWidth: 200 }}>
+          <label style={labelStyle}>Obra</label>
+          <select value={selObra} onChange={e => { setSelObra(e.target.value); setDrillCat(null); }} style={inputStyle}>
+            {obras.map(o => <option key={o.id} value={o.nome}>{o.nome}</option>)}
+          </select>
+        </div>
+        <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
+          <span style={{
+            background: ({ Em_andamento: T.accent2, Planejada: T.info, Pausada: T.danger, Concluída: T.success }[obraAtiva.status.replace(" ", "_")] || T.accent) + "18",
+            color: ({ Em_andamento: T.accent2, Planejada: T.info, Pausada: T.danger, Concluída: T.success }[obraAtiva.status.replace(" ", "_")] || T.accent),
+            padding: "4px 14px", borderRadius: 6, fontSize: 11, fontWeight: 600
+          }}>{obraAtiva.status}</span>
+          <span style={{ fontSize: 11, color: T.text3 }}>{obraAtiva.inicio} → {obraAtiva.fim}</span>
+          <button onClick={() => openModal("obra_edit", obraAtiva)} style={{ ...btnGhost, fontSize: 11, padding: "5px 12px" }}>✏ Editar</button>
+          <button onClick={() => openModal("obra_new")} style={{ ...btnPrimary, fontSize: 11, padding: "5px 14px" }}>+ Nova</button>
+        </div>
+      </div>
+
+      {/* ═══ 2. RESUMO EXECUTIVO ═══ */}
+      <div className="rbim-kpi-row" style={{ display: "flex", gap: 10, marginBottom: 10, flexWrap: "wrap" }}>
+        {/* Valores brutos */}
+        {[
+          { l: "Contrato", v: fmt(contratoVal), c: T.text, icon: "📋" },
+          { l: "Valor Orçado", v: fmt(valorOrcado), c: T.info, icon: "📐" },
+          { l: "Valor Gasto", v: fmt(valorGasto), c: T.danger, icon: "↓" },
+          { l: "Valor Recebido", v: fmt(valorRecebido), c: T.success, icon: "↑" },
+        ].map(({ l, v, c, icon }) => (
+          <div key={l} style={{ ...surface({ padding: "16px 20px" }), flex: 1, minWidth: 130, position: "relative", overflow: "hidden" }}>
+            <div style={{ position: "absolute", top: 12, right: 14, fontSize: 18, opacity: 0.08, color: c }}>{icon}</div>
+            <div style={{ fontSize: 9, color: T.text3, textTransform: "uppercase", letterSpacing: "0.12em", fontWeight: 600, marginBottom: 6 }}>{l}</div>
+            <div style={{ fontSize: 19, fontWeight: 700, color: c, fontFamily: T.fontDisplay, letterSpacing: "-0.02em" }}>{v}</div>
+          </div>
+        ))}
+      </div>
+
+      {/* KPIs de saúde */}
+      <div className="rbim-kpi-row" style={{ display: "flex", gap: 10, marginBottom: 16, flexWrap: "wrap" }}>
+        {/* Saldo de Caixa */}
+        <div style={{ ...surface({ padding: "16px 20px" }), flex: 1, minWidth: 130, borderLeft: `3px solid ${saldoCaixa >= 0 ? T.success : T.danger}` }}>
+          <div style={{ fontSize: 9, color: T.text3, textTransform: "uppercase", letterSpacing: "0.12em", fontWeight: 600, marginBottom: 6 }}>Saldo de Caixa</div>
+          <div style={{ fontSize: 19, fontWeight: 700, color: saldoCaixa >= 0 ? T.success : T.danger, fontFamily: T.fontDisplay, letterSpacing: "-0.02em" }}>{fmt(saldoCaixa)}</div>
+          <div style={{ fontSize: 10, color: T.text3, marginTop: 4 }}>Recebido − Gasto</div>
+        </div>
+        {/* Margem */}
+        <div style={{ ...surface({ padding: "16px 20px" }), flex: 1, minWidth: 130 }}>
+          <div style={{ fontSize: 9, color: T.text3, textTransform: "uppercase", letterSpacing: "0.12em", fontWeight: 600, marginBottom: 6 }}>Margem Atual</div>
+          <div style={{ fontSize: 19, fontWeight: 700, color: margemLucro >= 0 ? T.success : T.danger, fontFamily: T.fontDisplay, letterSpacing: "-0.02em" }}>{margemLucro.toFixed(1)}%</div>
+          <div style={{ fontSize: 10, color: T.text3, marginTop: 4 }}>(Recebido − Gasto) / Recebido</div>
+        </div>
+        {/* Desvio de Custo */}
+        <div style={{ ...surface({ padding: "16px 20px" }), flex: 1, minWidth: 130, borderLeft: `3px solid ${desvioCusto <= 0 ? T.success : T.danger}` }}>
+          <div style={{ fontSize: 9, color: T.text3, textTransform: "uppercase", letterSpacing: "0.12em", fontWeight: 600, marginBottom: 6 }}>Desvio de Custo</div>
+          <div style={{ fontSize: 19, fontWeight: 700, color: desvioCusto <= 0 ? T.success : T.danger, fontFamily: T.fontDisplay, letterSpacing: "-0.02em" }}>{fmt(desvioCusto)}</div>
+          <div style={{ fontSize: 10, color: desvioCusto > 0 ? T.danger : T.success, marginTop: 4, fontWeight: 600 }}>{desvioCusto > 0 ? "⚠ Acima do orçado" : "✓ Dentro do orçado"}</div>
+        </div>
+        {/* Termômetro */}
+        <div style={{ ...surface({ padding: "16px 20px" }), flex: 1.5, minWidth: 200 }}>
+          <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 6 }}>
+            <span style={{ fontSize: 9, color: T.text3, textTransform: "uppercase", letterSpacing: "0.12em", fontWeight: 600 }}>Orçamento Consumido</span>
+            <span style={{ fontSize: 12, fontWeight: 700, color: pctOrcConsum > 100 ? T.danger : pctOrcConsum > 80 ? T.accent2 : T.success }}>{pctOrcConsum.toFixed(1)}%</span>
+          </div>
+          <div style={{ background: T.surface2, borderRadius: 999, height: 10, overflow: "hidden", border: `1px solid ${T.border}`, position: "relative" }}>
+            <div style={{
+              height: "100%", borderRadius: 999, transition: "width 0.6s cubic-bezier(0.4,0,0.2,1)",
+              width: `${Math.min(pctOrcConsum, 100)}%`,
+              background: pctOrcConsum > 100 ? T.danger : pctOrcConsum > 80 ? `linear-gradient(90deg,${T.accent2},${T.danger})` : pctOrcConsum > 50 ? `linear-gradient(90deg,${T.success},${T.accent2})` : T.success,
+            }} />
+            {/* Marcador 100% */}
+            {valorOrcado > 0 && <div style={{ position: "absolute", left: "100%", top: -2, bottom: -2, width: 2, background: T.text3, opacity: 0.4, transform: "translateX(-1px)" }} />}
+          </div>
+          <div style={{ display: "flex", justifyContent: "space-between", marginTop: 5, fontSize: 9, color: T.text3 }}>
+            <span>R$ 0</span>
+            <span>{fmt(valorOrcado)}</span>
+          </div>
+        </div>
+      </div>
+
+      {/* ═══ 3. EVOLUÇÃO E FATURAMENTO ═══ */}
+      <div className="rbim-grid2-charts" style={{ display: "grid", gridTemplateColumns: "1.2fr 0.8fr", gap: 14, marginBottom: 16 }}>
+        {/* Curva S */}
+        <div style={surface()}>
+          <div style={{ fontWeight: 700, fontSize: 14, marginBottom: 14, fontFamily: T.fontDisplay, letterSpacing: "-0.01em" }}>Curva S — Cronograma Físico-Financeiro</div>
+          {curvaS.length > 0 ? (
+            <ResponsiveContainer width="100%" height={220}>
+              <LineChart data={curvaS} margin={{ left: 0, right: 8 }}>
+                <CartesianGrid strokeDasharray="3 3" stroke={T.border} />
+                <XAxis dataKey="mes" tick={{ fill: T.text3, fontSize: 10 }} />
+                <YAxis tick={{ fill: T.text3, fontSize: 10 }} tickFormatter={v => `${(v / 1000).toFixed(0)}k`} />
+                <Tooltip formatter={v => fmt(v)} contentStyle={tt} />
+                <Line type="monotone" dataKey="orcado" name="Orçado" stroke={T.info} strokeWidth={2} strokeDasharray="6 3" dot={false} />
+                <Line type="monotone" dataKey="gasto" name="Gasto" stroke={T.danger} strokeWidth={2.5} dot={{ fill: T.danger, r: 3 }} />
+                <Line type="monotone" dataKey="recebido" name="Recebido" stroke={T.success} strokeWidth={2.5} dot={{ fill: T.success, r: 3 }} />
+              </LineChart>
+            </ResponsiveContainer>
+          ) : <PlaceholderGrafico T={T} label="Sem dados para Curva S" />}
+        </div>
+
+        {/* Medições por mês */}
+        <div style={surface()}>
+          <div style={{ fontWeight: 700, fontSize: 14, marginBottom: 14, fontFamily: T.fontDisplay, letterSpacing: "-0.01em" }}>Medições Recebidas</div>
+          {medicoesMes.length > 0 ? (
+            <ResponsiveContainer width="100%" height={220}>
+              <BarChart data={medicoesMes} margin={{ left: 0, right: 8 }}>
+                <CartesianGrid strokeDasharray="3 3" stroke={T.border} />
+                <XAxis dataKey="mes" tick={{ fill: T.text3, fontSize: 10 }} />
+                <YAxis tick={{ fill: T.text3, fontSize: 10 }} tickFormatter={v => `${(v / 1000).toFixed(0)}k`} />
+                <Tooltip formatter={v => fmt(v)} contentStyle={tt} />
+                <Bar dataKey="valor" name="Recebido" fill={T.success} radius={[4, 4, 0, 0]} />
+              </BarChart>
+            </ResponsiveContainer>
+          ) : <PlaceholderGrafico T={T} label="Nenhuma medição registrada" />}
+        </div>
+      </div>
+
+      {/* ═══ 4. DETALHAMENTO DE CUSTOS ═══ */}
+      <div className="rbim-grid2-charts" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14, marginBottom: 16 }}>
+        {/* Categorias (clicável para drill-down) */}
+        <div style={{ ...surface(), display: "flex", flexDirection: "column" }}>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
+            <div style={{ fontWeight: 700, fontSize: 14, fontFamily: T.fontDisplay, letterSpacing: "-0.01em" }}>
+              {drillCat ? <><span style={{ color: T.text3, cursor: "pointer" }} onClick={() => setDrillCat(null)}>Categorias</span> › <span style={{ color: T.accent }}>{drillCat}</span></> : "Custos por Categoria"}
+            </div>
+            {drillCat && <button onClick={() => setDrillCat(null)} style={{ ...btnGhost, fontSize: 10, padding: "3px 10px" }}>← Voltar</button>}
+          </div>
+          {(drillCat ? porSubcat : porCategoria).length > 0 ? (
+            <ResponsiveContainer width="100%" height={Math.max(180, (drillCat ? porSubcat : porCategoria).length * 30)}>
+              <BarChart data={drillCat ? porSubcat : porCategoria} layout="vertical" margin={{ left: 10, right: 16 }}>
+                <XAxis type="number" tick={{ fill: T.text3, fontSize: 10 }} tickFormatter={v => `${(v / 1000).toFixed(0)}k`} />
+                <YAxis type="category" dataKey="name" tick={{ fill: T.text2, fontSize: 10 }} width={110} />
+                <Tooltip formatter={v => fmt(v)} contentStyle={tt} />
+                <Bar dataKey="value" radius={[0, 6, 6, 0]}
+                  onClick={(data) => { if (!drillCat) setDrillCat(data.name); }}
+                  style={{ cursor: drillCat ? "default" : "pointer" }}>
+                  {(drillCat ? porSubcat : porCategoria).map((_, i) => (
+                    <Cell key={i} fill={PALETTE[i % PALETTE.length]} />
+                  ))}
+                </Bar>
+              </BarChart>
+            </ResponsiveContainer>
+          ) : <PlaceholderGrafico T={T} label={drillCat ? "Sem subcategorias" : "Sem custos lançados"} />}
+          {!drillCat && porCategoria.length > 0 && (
+            <div style={{ fontSize: 10, color: T.text3, textAlign: "center", marginTop: 6, opacity: 0.7 }}>Clique em uma barra para detalhar subcategorias</div>
+          )}
+        </div>
+
+        {/* Curva ABC (Pareto) */}
+        <div style={surface()}>
+          <div style={{ fontWeight: 700, fontSize: 14, marginBottom: 14, fontFamily: T.fontDisplay, letterSpacing: "-0.01em" }}>Curva ABC — Pareto de Insumos</div>
+          {curvaABC.length > 0 ? (
+            <ResponsiveContainer width="100%" height={Math.max(200, curvaABC.length * 28)}>
+              <BarChart data={curvaABC} layout="vertical" margin={{ left: 10, right: 50 }}>
+                <XAxis type="number" tick={{ fill: T.text3, fontSize: 10 }} tickFormatter={v => `${(v / 1000).toFixed(0)}k`} />
+                <YAxis type="category" dataKey="nameShort" tick={{ fill: T.text2, fontSize: 9 }} width={130} />
+                <Tooltip formatter={(v, name) => name === "pctAcc" ? `${v.toFixed(1)}%` : fmt(v)} contentStyle={tt} />
+                <Bar dataKey="value" name="Valor" radius={[0, 4, 4, 0]}>
+                  {curvaABC.map((d, i) => (
+                    <Cell key={i} fill={d.pctAcc <= 80 ? T.accent : d.pctAcc <= 95 ? T.accent2 : T.text3} />
+                  ))}
+                </Bar>
+              </BarChart>
+            </ResponsiveContainer>
+          ) : <PlaceholderGrafico T={T} label="Sem dados para Curva ABC" />}
+          {curvaABC.length > 0 && (
+            <div style={{ display: "flex", gap: 12, justifyContent: "center", marginTop: 8 }}>
+              {[["A (80%)", T.accent], ["B (80–95%)", T.accent2], ["C (95–100%)", T.text3]].map(([l, c]) => (
+                <div key={l} style={{ display: "flex", alignItems: "center", gap: 4, fontSize: 10, color: T.text3 }}>
+                  <div style={{ width: 8, height: 8, borderRadius: 2, background: c }} />{l}
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* ═══ 5. AUDITORIA ═══ */}
+      <div style={{ ...surface({ padding: 0, overflow: "hidden" }) }}>
+        <div style={{ padding: "14px 20px", borderBottom: `1px solid ${T.border}`, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+          <div style={{ fontWeight: 700, fontSize: 14, fontFamily: T.fontDisplay, letterSpacing: "-0.01em" }}>
+            Auditoria — {obraAtiva.nome}
+            {drillCat && <span style={{ fontSize: 11, color: T.accent, fontWeight: 500, marginLeft: 8 }}>filtro: {drillCat}</span>}
+          </div>
+          <span style={{ fontSize: 11, color: T.text3 }}>{tabelaAuditoria.length} registros · {fmt(tabelaAuditoria.reduce((s, d) => s + d.valor, 0))}</span>
+        </div>
+        <div style={{ overflowX: "auto", maxHeight: 400, overflowY: "auto" }}>
+          <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 11 }}>
+            <thead style={{ position: "sticky", top: 0, background: T.surfaceSolid || T.surface2, zIndex: 1 }}>
+              <tr>{["Data", "Categoria", "Subcategoria", "Fornecedor", "Tipo", "Natureza", "Pagador", "Descrição", "Valor"].map(h => (
+                <th key={h} style={{ padding: "8px 12px", textAlign: h === "Valor" ? "right" : "left", color: T.text3, fontWeight: 600, fontSize: 9.5, borderBottom: `1px solid ${T.border}`, whiteSpace: "nowrap", letterSpacing: "0.07em", textTransform: "uppercase" }}>{h}</th>
+              ))}</tr>
+            </thead>
+            <tbody>
+              {tabelaAuditoria.map((d, i) => (
+                <tr key={d.id || i} style={{ borderBottom: `1px solid ${T.border}`, background: i % 2 === 0 ? "transparent" : T.rowAlt }}>
+                  <td style={{ padding: "7px 12px", color: T.text3, whiteSpace: "nowrap" }}>{d.data}</td>
+                  <td style={{ padding: "7px 12px", color: T.accent2, fontSize: 10, fontWeight: 500 }}>{d.categoria}</td>
+                  <td style={{ padding: "7px 12px", color: T.text3, fontSize: 10 }}>{d.subcategoria}</td>
+                  <td style={{ padding: "7px 12px" }}>{d.fornecedor || "—"}</td>
+                  <td style={{ padding: "7px 12px" }}><span style={{ background: T.info + "15", color: T.info, padding: "2px 7px", borderRadius: 5, fontSize: 9, fontWeight: 600 }}>{d.tipo}</span></td>
+                  <td style={{ padding: "7px 12px" }}><span style={{ background: T.accent + "15", color: T.accent, padding: "2px 7px", borderRadius: 5, fontSize: 9, fontWeight: 600 }}>{d.natureza}</span></td>
+                  <td style={{ padding: "7px 12px", color: T.text3, fontSize: 10 }}>{d.pagador || "—"}</td>
+                  <td style={{ padding: "7px 12px", color: T.text2, maxWidth: 160, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{d.obs || "—"}</td>
+                  <td style={{ padding: "7px 12px", fontWeight: 700, color: T.accent, textAlign: "right", whiteSpace: "nowrap" }}>{fmt(d.valor)}</td>
+                </tr>
+              ))}
+              {tabelaAuditoria.length === 0 && (
+                <tr><td colSpan={9} style={{ padding: "32px 12px", textAlign: "center", color: T.text3 }}>Nenhum lançamento para esta obra</td></tr>
+              )}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
   );
 }
 
