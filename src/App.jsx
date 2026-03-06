@@ -82,54 +82,60 @@ if (typeof document !== "undefined" && !document.getElementById("rbim-fonts")) {
 }
 
 const DARK = {
-  bg:"#080C14",
-  surface:"rgba(255,255,255,0.045)",
-  surface2:"rgba(255,255,255,0.07)",
-  surfaceSolid:"#0F1520",
-  border:"rgba(255,255,255,0.09)",
-  border2:"rgba(255,255,255,0.14)",
-  text:"#F0F4FF",
-  text2:"#8B96B0",
-  text3:"#505A72",
-  accent:"#4F8EF7",
-  accent2:"#A78BFA",
-  danger:"#FF6B8A",
-  success:"#34D399",
-  info:"#38BDF8",
-  inputBg:"rgba(255,255,255,0.05)",
-  rowAlt:"rgba(255,255,255,0.025)",
-  shadow:"0 4px 24px rgba(0,0,0,0.4), 0 1px 4px rgba(0,0,0,0.2)",
-  shadowHover:"0 8px 32px rgba(0,0,0,0.5), 0 2px 8px rgba(0,0,0,0.3)",
-  gradBg:"radial-gradient(ellipse 80% 60% at 20% -10%, rgba(79,142,247,0.12) 0%, transparent 60%), radial-gradient(ellipse 60% 40% at 80% 100%, rgba(167,139,250,0.08) 0%, transparent 60%), #080C14",
-  glassBg:"rgba(255,255,255,0.045)",
-  glassBlur:"blur(16px)",
-  fontFamily:"'DM Sans', 'SF Pro Display', system-ui, sans-serif",
-  fontDisplay:"'Syne', 'SF Pro Display', system-ui, sans-serif",
+  bg:"#060B16",
+  surface:"rgba(255,255,255,0.04)",
+  surface2:"rgba(255,255,255,0.065)",
+  surfaceSolid:"#0D1321",
+  border:"rgba(255,255,255,0.08)",
+  border2:"rgba(255,255,255,0.13)",
+  text:"#EDF2FF",
+  text2:"#8D99B4",
+  text3:"#525E78",
+  accent:"#5B9BFF",
+  accent2:"#B49CFF",
+  danger:"#FF7090",
+  success:"#3DE8A0",
+  info:"#42CAFE",
+  inputBg:"rgba(255,255,255,0.045)",
+  rowAlt:"rgba(255,255,255,0.02)",
+  shadow:"0 4px 28px rgba(0,0,0,0.45), 0 1px 3px rgba(0,0,0,0.25), inset 0 1px 0 rgba(255,255,255,0.04)",
+  shadowHover:"0 8px 40px rgba(0,0,0,0.55), 0 2px 6px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.06)",
+  gradBg:"radial-gradient(ellipse 90% 60% at 15% -15%, rgba(91,155,255,0.14) 0%, transparent 55%), radial-gradient(ellipse 55% 45% at 85% 105%, rgba(180,156,255,0.09) 0%, transparent 55%), radial-gradient(ellipse 40% 30% at 50% 50%, rgba(6,11,22,0.4) 0%, transparent 100%), #060B16",
+  glassBg:"rgba(255,255,255,0.035)",
+  glassBlur:"blur(20px)",
+  glassBorder:"rgba(255,255,255,0.08)",
+  glassHighlight:"inset 0 1px 0 rgba(255,255,255,0.06)",
+  tagBg:"22", // opacity suffix for tag backgrounds
+  fontFamily:"'DM Sans', 'SF Pro Display', -apple-system, sans-serif",
+  fontDisplay:"'Syne', 'SF Pro Display', -apple-system, sans-serif",
 };
 const LIGHT = {
-  bg:"#F0F4FA",
-  surface:"rgba(255,255,255,0.72)",
-  surface2:"rgba(248,250,255,0.85)",
+  bg:"#EEF2F9",
+  surface:"rgba(255,255,255,0.65)",
+  surface2:"rgba(255,255,255,0.80)",
   surfaceSolid:"#FFFFFF",
-  border:"rgba(99,120,165,0.12)",
-  border2:"rgba(99,120,165,0.2)",
-  text:"#0F1729",
-  text2:"#4A5568",
-  text3:"#8895AA",
-  accent:"#2563EB",
-  accent2:"#7C3AED",
-  danger:"#DC2626",
-  success:"#059669",
-  info:"#0284C7",
-  inputBg:"rgba(255,255,255,0.9)",
-  rowAlt:"rgba(248,250,255,0.6)",
-  shadow:"0 4px 20px rgba(15,23,42,0.08), 0 1px 4px rgba(15,23,42,0.04)",
-  shadowHover:"0 8px 30px rgba(15,23,42,0.12), 0 2px 8px rgba(15,23,42,0.06)",
-  gradBg:"radial-gradient(ellipse 80% 50% at 20% -5%, rgba(37,99,235,0.06) 0%, transparent 60%), radial-gradient(ellipse 50% 40% at 85% 95%, rgba(124,58,237,0.05) 0%, transparent 60%), #F0F4FA",
-  glassBg:"rgba(255,255,255,0.72)",
-  glassBlur:"blur(20px)",
-  fontFamily:"'DM Sans', 'SF Pro Display', system-ui, sans-serif",
-  fontDisplay:"'Syne', 'SF Pro Display', system-ui, sans-serif",
+  border:"rgba(55,75,120,0.10)",
+  border2:"rgba(55,75,120,0.18)",
+  text:"#0C1629",
+  text2:"#3D4F6F",
+  text3:"#7A879E",
+  accent:"#2D6EE7",
+  accent2:"#6D4CE0",
+  danger:"#E8364F",
+  success:"#0DA66C",
+  info:"#0880C7",
+  inputBg:"rgba(255,255,255,0.80)",
+  rowAlt:"rgba(55,75,120,0.028)",
+  shadow:"0 4px 24px rgba(15,25,50,0.07), 0 1px 3px rgba(15,25,50,0.04), inset 0 1px 0 rgba(255,255,255,0.8)",
+  shadowHover:"0 8px 36px rgba(15,25,50,0.10), 0 2px 6px rgba(15,25,50,0.05), inset 0 1px 0 rgba(255,255,255,0.9)",
+  gradBg:"radial-gradient(ellipse 90% 55% at 15% -10%, rgba(45,110,231,0.07) 0%, transparent 55%), radial-gradient(ellipse 55% 45% at 90% 105%, rgba(109,76,224,0.05) 0%, transparent 55%), #EEF2F9",
+  glassBg:"rgba(255,255,255,0.55)",
+  glassBlur:"blur(24px)",
+  glassBorder:"rgba(55,75,120,0.10)",
+  glassHighlight:"inset 0 1px 0 rgba(255,255,255,0.95)",
+  tagBg:"18", // slightly less opacity for light mode tags
+  fontFamily:"'DM Sans', 'SF Pro Display', -apple-system, sans-serif",
+  fontDisplay:"'Syne', 'SF Pro Display', -apple-system, sans-serif",
 };
 
 // ─── SEED DATA ────────────────────────────────────────────────────────────────
@@ -585,7 +591,7 @@ function CurrencyInput({ value, onChange, label, required, inputStyle, labelStyl
 
 // ─── APP ──────────────────────────────────────────────────────────────────────
 export default function App() {
-  const [dark, setDark] = useState(true);
+  const [dark, setDark] = useState(false);
   const T = dark ? DARK : LIGHT;
   const isMobile = useIsMobile();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -662,18 +668,25 @@ export default function App() {
   const [fcObra,setFcObra] = useState("TODAS");
   const [fcCat,setFcCat] = useState("TODAS");
   const [fcSearch,setFcSearch] = useState("");
+  const [fcTipo,setFcTipo] = useState("TODOS");
+  const [fcNatureza,setFcNatureza] = useState("TODAS");
+  const [fcPagador,setFcPagador] = useState("TODOS");
+  const [fcBanco,setFcBanco] = useState("TODOS");
+  const [fcDateFrom,setFcDateFrom] = useState("");
+  const [fcDateTo,setFcDateTo] = useState("");
   // ordenação custos: {col: string, dir: "asc"|"desc"}
   const [fcSort,setFcSort] = useState({col:"data",dir:"desc"});
   const toggleSort = (col) => setFcSort(prev => prev.col===col ? {col,dir:prev.dir==="asc"?"desc":"asc"} : {col,dir:"asc"});
   // seleção em massa + agrupamento
   const [selectedIds, setSelectedIds] = useState(new Set());
-  const [fcGroupBy, setFcGroupBy] = useState("none"); // "none"|"obra"|"categoria"|"mes"
+  const [fcGroupBy, setFcGroupBy] = useState("none"); // "none"|"obra"|"categoria"|"mes"|"tipo"|"natureza"|"pagador"|"fornecedor"
   const [bulkField, setBulkField] = useState(""); // campo a editar em massa
   const [bulkValue, setBulkValue] = useState(""); // novo valor
   const [bulkSub, setBulkSub] = useState(""); // subcategoria when changing categoria
   const toggleSelect = (id) => setSelectedIds(prev => { const n = new Set(prev); n.has(id)?n.delete(id):n.add(id); return n; });
   const selectAll = (ids) => setSelectedIds(new Set(ids));
   const clearSelection = () => setSelectedIds(new Set());
+  const clearCustosFilters = () => { setFcObra("TODAS"); setFcCat("TODAS"); setFcSearch(""); setFcTipo("TODOS"); setFcNatureza("TODAS"); setFcPagador("TODOS"); setFcBanco("TODOS"); setFcDateFrom(""); setFcDateTo(""); };
 
   // bulk edit handler
   const applyBulkEdit = async () => {
@@ -769,8 +782,15 @@ export default function App() {
   const filtCustosAba = useMemo(()=>custos.filter(d=>
     (fcObra==="TODAS"||d.obra===fcObra)&&
     (fcCat==="TODAS"||d.categoria===fcCat)&&
-    (fcSearch===""||d.obs?.toLowerCase().includes(fcSearch.toLowerCase())||d.fornecedor?.toLowerCase().includes(fcSearch.toLowerCase()))
-  ),[custos,fcObra,fcCat,fcSearch]);
+    (fcTipo==="TODOS"||d.tipo===fcTipo)&&
+    (fcNatureza==="TODAS"||d.natureza===fcNatureza)&&
+    (fcPagador==="TODOS"||d.pagador===fcPagador)&&
+    (fcBanco==="TODOS"||d.banco===fcBanco)&&
+    (!fcDateFrom||d.data>=fcDateFrom)&&
+    (!fcDateTo||d.data<=fcDateTo)&&
+    (fcSearch===""||d.obs?.toLowerCase().includes(fcSearch.toLowerCase())||d.fornecedor?.toLowerCase().includes(fcSearch.toLowerCase())||d.subcategoria?.toLowerCase().includes(fcSearch.toLowerCase()))
+  ),[custos,fcObra,fcCat,fcTipo,fcNatureza,fcPagador,fcBanco,fcDateFrom,fcDateTo,fcSearch]);
+  const activeFiltersCount = [fcObra!=="TODAS",fcCat!=="TODAS",fcTipo!=="TODOS",fcNatureza!=="TODAS",fcPagador!=="TODOS",fcBanco!=="TODOS",!!fcDateFrom,!!fcDateTo,!!fcSearch].filter(Boolean).length;
 
   // saldo bancos
   const saldoBancos = useMemo(()=> bancos.map(b=>{
@@ -786,17 +806,17 @@ export default function App() {
     background: T.glassBg,
     backdropFilter: T.glassBlur,
     WebkitBackdropFilter: T.glassBlur,
-    border: `1px solid ${T.border}`,
+    border: `1px solid ${T.glassBorder || T.border}`,
     borderRadius: 16,
     padding: "20px 24px",
-    boxShadow: T.shadow,
-    transition: "box-shadow 0.2s, border-color 0.2s",
+    boxShadow: `${T.shadow}, ${T.glassHighlight || 'none'}`,
+    transition: "box-shadow 0.25s, border-color 0.25s, transform 0.2s",
     ...extra
   });
   const inputStyle = {
     background: T.inputBg,
-    backdropFilter: "blur(8px)",
-    WebkitBackdropFilter: "blur(8px)",
+    backdropFilter: "blur(10px)",
+    WebkitBackdropFilter: "blur(10px)",
     border: `1px solid ${T.border2}`,
     color: T.text,
     borderRadius: 10,
@@ -806,21 +826,23 @@ export default function App() {
     fontFamily: T.fontFamily,
     width: "100%",
     boxSizing: "border-box",
-    transition: "border-color 0.15s, box-shadow 0.15s",
+    transition: "border-color 0.2s, box-shadow 0.2s",
+    boxShadow: `inset 0 1px 2px ${dark ? 'rgba(0,0,0,0.15)' : 'rgba(0,0,0,0.04)'}`,
   };
   const labelStyle = {
     fontSize: 10,
     fontWeight: 600,
-    color: T.text3,
+    color: T.accent,
     textTransform: "uppercase",
-    letterSpacing: "0.08em",
+    letterSpacing: "0.1em",
     display: "block",
     marginBottom: 5,
     fontFamily: T.fontFamily,
+    opacity: 0.85,
   };
   const btnPrimary = {
     padding: "9px 20px",
-    background: `linear-gradient(135deg, ${T.accent}, ${T.accent}dd)`,
+    background: `linear-gradient(135deg, ${T.accent}, ${T.accent2}cc)`,
     border: "none",
     color: "#fff",
     borderRadius: 10,
@@ -828,32 +850,33 @@ export default function App() {
     cursor: "pointer",
     fontSize: 13,
     fontFamily: T.fontFamily,
-    boxShadow: `0 2px 12px ${T.accent}44`,
-    transition: "opacity 0.15s, transform 0.1s, box-shadow 0.2s",
+    boxShadow: `0 3px 16px ${T.accent}33, inset 0 1px 0 rgba(255,255,255,0.15)`,
+    transition: "opacity 0.15s, transform 0.1s, box-shadow 0.25s",
     letterSpacing: "0.01em",
   };
   const btnGhost = {
     padding: "8px 16px",
     background: T.surface2,
-    backdropFilter: "blur(8px)",
-    WebkitBackdropFilter: "blur(8px)",
+    backdropFilter: "blur(10px)",
+    WebkitBackdropFilter: "blur(10px)",
     border: `1px solid ${T.border2}`,
     color: T.text2,
     borderRadius: 10,
     cursor: "pointer",
     fontSize: 12,
     fontFamily: T.fontFamily,
-    transition: "background 0.15s, border-color 0.15s, color 0.15s",
+    transition: "background 0.15s, border-color 0.15s, color 0.15s, box-shadow 0.2s",
     letterSpacing: "0.01em",
+    boxShadow: T.glassHighlight || "none",
   };
   const tooltipStyle = {
-    background: dark ? "rgba(15,21,32,0.95)" : "rgba(255,255,255,0.96)",
-    backdropFilter: "blur(12px)",
+    background: dark ? "rgba(10,16,28,0.96)" : "rgba(255,255,255,0.97)",
+    backdropFilter: "blur(16px)",
     border: `1px solid ${T.border2}`,
     borderRadius: 10,
     color: T.text,
     fontSize: 12,
-    boxShadow: T.shadow,
+    boxShadow: T.shadowHover,
     fontFamily: T.fontFamily,
   };
 
@@ -882,11 +905,37 @@ export default function App() {
     }}>
       <style>{`
         * { box-sizing: border-box; }
-        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        html { scroll-behavior: smooth; }
+        ::-webkit-scrollbar { width: 5px; height: 5px; }
         ::-webkit-scrollbar-track { background: transparent; }
-        ::-webkit-scrollbar-thumb { background: rgba(128,128,128,0.2); border-radius: 99px; }
-        ::-webkit-scrollbar-thumb:hover { background: rgba(128,128,128,0.35); }
+        ::-webkit-scrollbar-thumb { background: rgba(128,140,165,0.18); border-radius: 99px; }
+        ::-webkit-scrollbar-thumb:hover { background: rgba(128,140,165,0.32); }
+        button { letter-spacing: 0.01em; }
         button:active { transform: scale(0.97); }
+        select { cursor: pointer; }
+        input:focus, select:focus { outline: none; border-color: ${T.accent}88 !important; box-shadow: 0 0 0 3px ${T.accent}18 !important; }
+        input::placeholder { color: ${T.text3}; opacity: 0.7; }
+        table { border-spacing: 0; }
+
+        @keyframes fadeUp { from { opacity:0; transform:translateY(8px); } to { opacity:1; transform:translateY(0); } }
+        @keyframes fadeIn { from { opacity:0; } to { opacity:1; } }
+        @keyframes slideDown { from { opacity:0; transform:translateY(-6px); } to { opacity:1; transform:translateY(0); } }
+        @keyframes shimmer { 0% { background-position: -200% 0; } 100% { background-position: 200% 0; } }
+        @keyframes pulse { 0%,100% { opacity:1; } 50% { opacity:0.6; } }
+        @keyframes spin { from { transform:rotate(0deg); } to { transform:rotate(360deg); } }
+
+        .rbim-glass {
+          background: ${T.glassBg};
+          backdrop-filter: ${T.glassBlur};
+          -webkit-backdrop-filter: ${T.glassBlur};
+          border: 1px solid ${T.glassBorder || T.border};
+          box-shadow: ${T.shadow}, ${T.glassHighlight || 'none'};
+        }
+
+        .rbim-card-hover { transition: box-shadow 0.25s, border-color 0.25s, transform 0.2s; }
+        .rbim-card-hover:hover { box-shadow: ${T.shadowHover}, ${T.glassHighlight || 'none'}; border-color: ${T.border2}; transform: translateY(-1px); }
+
+        .rbim-tag { padding: 3px 9px; border-radius: 6px; font-size: 9px; font-weight: 600; letter-spacing: 0.04em; display: inline-block; }
 
         @media (max-width: 767px) {
           .rbim-header-tabs { display: none !important; }
@@ -911,8 +960,8 @@ export default function App() {
           .rbim-apagar-card > button { width: 100% !important; }
           .rbim-bancos-row { flex-direction: column !important; }
           .rbim-bancos-row > div { min-width: 100% !important; }
-          .rbim-modal-inner { max-width: 100% !important; border-radius: 0 !important; max-height: 100vh !important; height: 100vh !important; padding: 20px 16px !important; }
-          .rbim-modal-overlay { padding: 0 !important; }
+          .rbim-modal-inner { max-width: 100% !important; border-radius: 16px 16px 0 0 !important; max-height: 100vh !important; height: auto !important; max-height: 95vh !important; padding: 20px 16px !important; margin-top: auto !important; }
+          .rbim-modal-overlay { padding: 0 !important; align-items: flex-end !important; }
           .rbim-content-wrapper { padding: 16px 12px 100px 12px !important; }
           .rbim-header-inner { padding: 0 12px !important; }
           .rbim-budget-toolbar { flex-direction: column !important; gap: 8px !important; }
@@ -935,14 +984,13 @@ export default function App() {
 
       {/* ── DB STATUS BANNER ──────────────────────────────────────────────── */}
       {dbLoading && (
-        <div style={{background:T.accent+"18",borderBottom:`1px solid ${T.accent}33`,padding:"10px 32px",fontSize:12,color:T.accent,fontWeight:500,display:"flex",alignItems:"center",gap:8}}>
+        <div style={{background:T.accent+"12",borderBottom:`1px solid ${T.accent}22`,padding:"10px 32px",fontSize:12,color:T.accent,fontWeight:500,display:"flex",alignItems:"center",gap:8,backdropFilter:"blur(12px)",WebkitBackdropFilter:"blur(12px)"}}>
           <span style={{animation:"spin 1s linear infinite",display:"inline-block"}}>⟳</span>
           Carregando dados do banco de dados...
-          <style>{`@keyframes spin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}`}</style>
         </div>
       )}
       {dbError && (
-        <div style={{background:T.danger+"18",borderBottom:`1px solid ${T.danger}33`,padding:"12px 32px",fontSize:12,color:T.danger,fontWeight:500,display:"flex",flexDirection:"column",gap:4}}>
+        <div style={{background:T.danger+"12",borderBottom:`1px solid ${T.danger}22`,padding:"12px 32px",fontSize:12,color:T.danger,fontWeight:500,display:"flex",flexDirection:"column",gap:4,backdropFilter:"blur(12px)",WebkitBackdropFilter:"blur(12px)"}}>
           <div style={{fontWeight:700}}>⚠ Erro ao conectar com o Supabase:</div>
           <div style={{fontFamily:"monospace",fontSize:11,opacity:0.9}}>{dbError}</div>
           <div style={{fontSize:11,opacity:0.7}}>Abra o Console do navegador (F12) para mais detalhes.</div>
@@ -954,10 +1002,11 @@ export default function App() {
         position: "sticky",
         top: 0,
         zIndex: 100,
-        background: dark ? "rgba(8,12,20,0.85)" : "rgba(240,244,250,0.85)",
-        backdropFilter: "blur(20px)",
-        WebkitBackdropFilter: "blur(20px)",
-        borderBottom: `1px solid ${T.border}`,
+        background: dark ? "rgba(6,11,22,0.82)" : "rgba(238,242,249,0.80)",
+        backdropFilter: "blur(24px) saturate(1.3)",
+        WebkitBackdropFilter: "blur(24px) saturate(1.3)",
+        borderBottom: `1px solid ${T.glassBorder || T.border}`,
+        boxShadow: `0 1px 20px ${dark ? 'rgba(0,0,0,0.3)' : 'rgba(15,25,50,0.06)'}`,
       }}>
         <div className="rbim-header-inner" style={{
           display: "flex",
@@ -970,17 +1019,17 @@ export default function App() {
         }}>
           <div style={{display:"flex",alignItems:"center",gap:12}}>
             <div style={{
-              width: 36, height: 36,
+              width: 38, height: 38,
               background: `linear-gradient(135deg, ${T.accent}, ${T.accent2})`,
-              borderRadius: 10,
+              borderRadius: 11,
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
-              fontSize: 16,
+              fontSize: 17,
               fontFamily: T.fontDisplay,
               fontWeight: 800,
               color: "#fff",
-              boxShadow: `0 4px 16px ${T.accent}44`,
+              boxShadow: `0 4px 20px ${T.accent}44, inset 0 1px 0 rgba(255,255,255,0.2)`,
               flexShrink: 0,
             }}>R</div>
             <div>
@@ -992,28 +1041,28 @@ export default function App() {
           </div>
 
           {/* Desktop tabs */}
-          <div className="rbim-header-tabs" style={{display:"flex",gap:2,alignItems:"center"}}>
+          <div className="rbim-header-tabs" style={{display:"flex",gap:1,alignItems:"center"}}>
             {TABS.map(({id,label,icon,badge})=>(
               <button key={id} onClick={()=>setTab(id)} style={{
-                padding: "6px 14px",
+                padding: "6px 15px",
                 border: "none",
                 cursor: "pointer",
                 fontWeight: tab===id ? 600 : 400,
                 fontSize: 12,
                 fontFamily: T.fontFamily,
                 position: "relative",
-                transition: "all 0.15s",
-                background: tab===id ? (dark ? "rgba(79,142,247,0.15)" : "rgba(37,99,235,0.1)") : "transparent",
+                transition: "all 0.2s",
+                background: tab===id ? T.accent + (dark?"18":"12") : "transparent",
                 color: tab===id ? T.accent : T.text3,
                 borderBottom: tab===id ? `2px solid ${T.accent}` : "2px solid transparent",
-                borderRadius: "6px 6px 0 0",
+                borderRadius: "8px 8px 0 0",
                 height: 64,
                 display: "flex",
                 alignItems: "center",
                 gap: 5,
                 letterSpacing: "0.01em",
               }}>
-                <span style={{fontSize: 11, opacity: 0.7}}>{icon}</span>
+                <span style={{fontSize: 11, opacity: tab===id ? 0.9 : 0.5}}>{icon}</span>
                 {label}
                 {badge>0 && (
                   <span style={{
@@ -1056,13 +1105,14 @@ export default function App() {
         {/* Mobile dropdown menu */}
         {mobileMenuOpen && (
           <div style={{
-            background: dark ? "rgba(8,12,20,0.97)" : "rgba(240,244,250,0.97)",
-            backdropFilter:"blur(20px)",WebkitBackdropFilter:"blur(20px)",
+            background: dark ? "rgba(6,11,22,0.96)" : "rgba(238,242,249,0.96)",
+            backdropFilter:"blur(24px) saturate(1.2)",WebkitBackdropFilter:"blur(24px) saturate(1.2)",
             borderTop: `1px solid ${T.border}`,
             padding: "12px 16px",
             display: "flex",
             flexDirection: "column",
             gap: 4,
+            animation: "slideDown 0.2s ease-out",
           }}>
             {TABS.map(({id,label,icon,badge})=>(
               <button key={id} onClick={()=>{setTab(id);setMobileMenuOpen(false);}} style={{
@@ -1182,10 +1232,19 @@ export default function App() {
           fcObra={fcObra} setFcObra={setFcObra}
           fcCat={fcCat} setFcCat={setFcCat}
           fcSearch={fcSearch} setFcSearch={setFcSearch}
+          fcTipo={fcTipo} setFcTipo={setFcTipo}
+          fcNatureza={fcNatureza} setFcNatureza={setFcNatureza}
+          fcPagador={fcPagador} setFcPagador={setFcPagador}
+          fcBanco={fcBanco} setFcBanco={setFcBanco}
+          fcDateFrom={fcDateFrom} setFcDateFrom={setFcDateFrom}
+          fcDateTo={fcDateTo} setFcDateTo={setFcDateTo}
+          activeFiltersCount={activeFiltersCount}
+          clearCustosFilters={clearCustosFilters}
           fcSort={fcSort} toggleSort={toggleSort}
           fcGroupBy={fcGroupBy} setFcGroupBy={setFcGroupBy}
           selectedIds={selectedIds} toggleSelect={toggleSelect}
           selectAll={selectAll} clearSelection={clearSelection}
+          setSelectedIds={setSelectedIds}
           bulkField={bulkField} setBulkField={setBulkField}
           bulkValue={bulkValue} setBulkValue={setBulkValue}
           bulkSub={bulkSub} setBulkSub={setBulkSub}
@@ -1298,8 +1357,8 @@ export default function App() {
 
       {/* ════ MODAIS ═════════════════════════════════════════════════════════ */}
       {modal && (
-        <div className="rbim-modal-overlay" onClick={closeModal} style={{position:"fixed",inset:0,background:dark?"rgba(0,0,0,0.7)":"rgba(0,0,0,0.35)",backdropFilter:"blur(8px)",WebkitBackdropFilter:"blur(8px)",zIndex:999,display:"flex",alignItems:"center",justifyContent:"center",padding:20}}>
-          <div className="rbim-modal-inner" onClick={e=>e.stopPropagation()} style={{background:dark?"rgba(12,17,28,0.97)":"rgba(255,255,255,0.97)",backdropFilter:"blur(24px)",WebkitBackdropFilter:"blur(24px)",border:`1px solid ${T.border2}`,borderRadius:20,padding:28,width:"100%",maxWidth:580,maxHeight:"92vh",overflowY:"auto",color:T.text,fontFamily:T.fontFamily,boxShadow:T.shadowHover}}>
+        <div className="rbim-modal-overlay" onClick={closeModal} style={{position:"fixed",inset:0,background:dark?"rgba(0,0,0,0.65)":"rgba(15,25,50,0.25)",backdropFilter:"blur(12px) saturate(1.2)",WebkitBackdropFilter:"blur(12px) saturate(1.2)",zIndex:999,display:"flex",alignItems:"center",justifyContent:"center",padding:20,animation:"fadeIn 0.15s ease-out"}}>
+          <div className="rbim-modal-inner" onClick={e=>e.stopPropagation()} style={{background:dark?"rgba(10,16,28,0.96)":"rgba(255,255,255,0.96)",backdropFilter:"blur(32px) saturate(1.2)",WebkitBackdropFilter:"blur(32px) saturate(1.2)",border:`1px solid ${T.border2}`,borderRadius:20,padding:28,width:"100%",maxWidth:580,maxHeight:"92vh",overflowY:"auto",color:T.text,fontFamily:T.fontFamily,boxShadow:`${T.shadowHover}, ${T.glassHighlight || 'none'}`,animation:"fadeUp 0.2s ease-out"}}>
             {modal==="custo" && <ModalCusto T={T} obras={obras} bancos={bancos} cats={cats} custos={custos}
               inputStyle={inputStyle} labelStyle={labelStyle} btnPrimary={btnPrimary}
               onClose={closeModal} initial={custoEditando} fornecedores={fornecedores}
@@ -1368,10 +1427,9 @@ export default function App() {
             display: "flex", flexDirection: "column", gap: 6,
             animation: "fadeUp 0.2s ease-out",
           }}>
-            <style>{`@keyframes fadeUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}`}</style>
             <button onClick={()=>{setQuickCostOpen(false);openModal("custo");}} style={{
               padding: "14px 20px", borderRadius: 14,
-              background: dark ? "rgba(12,17,28,0.95)" : "rgba(255,255,255,0.95)",
+              background: dark ? "rgba(10,16,28,0.94)" : "rgba(255,255,255,0.92)",
               backdropFilter: "blur(20px)", WebkitBackdropFilter: "blur(20px)",
               border: `1px solid ${T.accent}44`,
               color: T.accent, fontWeight: 700, fontSize: 14,
@@ -1383,7 +1441,7 @@ export default function App() {
             </button>
             <button onClick={()=>{setQuickCostOpen(false);openModal("receita");}} style={{
               padding: "14px 20px", borderRadius: 14,
-              background: dark ? "rgba(12,17,28,0.95)" : "rgba(255,255,255,0.95)",
+              background: dark ? "rgba(10,16,28,0.94)" : "rgba(255,255,255,0.92)",
               backdropFilter: "blur(20px)", WebkitBackdropFilter: "blur(20px)",
               border: `1px solid ${T.success}44`,
               color: T.success, fontWeight: 700, fontSize: 14,
@@ -1395,7 +1453,7 @@ export default function App() {
             </button>
             <button onClick={()=>{setQuickCostOpen(false);openModal("apagar_new");}} style={{
               padding: "14px 20px", borderRadius: 14,
-              background: dark ? "rgba(12,17,28,0.95)" : "rgba(255,255,255,0.95)",
+              background: dark ? "rgba(10,16,28,0.94)" : "rgba(255,255,255,0.92)",
               backdropFilter: "blur(20px)", WebkitBackdropFilter: "blur(20px)",
               border: `1px solid ${T.danger}44`,
               color: T.danger, fontWeight: 700, fontSize: 14,
@@ -1411,7 +1469,8 @@ export default function App() {
         {/* Overlay to close */}
         {quickCostOpen && (
           <div onClick={()=>setQuickCostOpen(false)} style={{
-            position: "fixed", inset: 0, background: "rgba(0,0,0,0.4)",
+            position: "fixed", inset: 0, background: dark ? "rgba(0,0,0,0.35)" : "rgba(15,25,50,0.15)",
+            backdropFilter: "blur(4px)", WebkitBackdropFilter: "blur(4px)",
             zIndex: -1,
           }}/>
         )}
@@ -1430,7 +1489,9 @@ export default function App() {
           background: quickCostOpen
             ? `linear-gradient(135deg, ${T.text3}, ${T.text3}cc)`
             : `linear-gradient(135deg, ${T.accent}, ${T.accent2})`,
-          boxShadow: `0 6px 24px ${quickCostOpen ? T.text3 : T.accent}55, 0 2px 8px rgba(0,0,0,0.2)`,
+          boxShadow: quickCostOpen
+            ? `0 6px 24px rgba(0,0,0,0.2)`
+            : `0 6px 28px ${T.accent}44, 0 2px 8px rgba(0,0,0,0.15), inset 0 1px 0 rgba(255,255,255,0.2)`,
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
@@ -1450,23 +1511,47 @@ export default function App() {
 // ─── CUSTOS ABA — COMPONENT ──────────────────────────────────────────────────
 function CustosAba({ T, dark, custos, allCustos, setCustos, obras, bancos, cats,
   fcObra, setFcObra, fcCat, setFcCat, fcSearch, setFcSearch,
+  fcTipo, setFcTipo, fcNatureza, setFcNatureza, fcPagador, setFcPagador,
+  fcBanco, setFcBanco, fcDateFrom, setFcDateFrom, fcDateTo, setFcDateTo,
+  activeFiltersCount, clearCustosFilters,
   fcSort, toggleSort, fcGroupBy, setFcGroupBy,
-  selectedIds, toggleSelect, selectAll, clearSelection,
+  selectedIds, toggleSelect, selectAll, clearSelection, setSelectedIds,
   bulkField, setBulkField, bulkValue, setBulkValue,
   bulkSub, setBulkSub, applyBulkEdit, applyBulkDelete,
   obrasNames, catsNames, openModal,
   surface, inputStyle, labelStyle, btnPrimary, btnGhost }) {
 
   const [collapsedGroups, setCollapsedGroups] = useState(new Set());
+  const [showFilters, setShowFilters] = useState(false);
   const toggleGroup = (key) => setCollapsedGroups(prev => { const n = new Set(prev); n.has(key)?n.delete(key):n.add(key); return n; });
+
+  // ── KPIs derivados ──
+  const totalFiltrado = custos.reduce((s,d)=>s+d.valor,0);
+  const countFiltrado = custos.length;
+  const porNatureza = useMemo(()=>{
+    const m={};
+    custos.forEach(d=>{m[d.natureza]=(m[d.natureza]||0)+d.valor;});
+    return m;
+  },[custos]);
+  const porTipo = useMemo(()=>{
+    const m={};
+    custos.forEach(d=>{m[d.tipo]=(m[d.tipo]||0)+d.valor;});
+    return m;
+  },[custos]);
+
+  // ── Listas únicas para filtros ──
+  const bancosUnicos = useMemo(()=>["TODOS",...[...new Set(allCustos.map(c=>c.banco).filter(Boolean))].sort()],[allCustos]);
+  const pagadoresUnicos = useMemo(()=>["TODOS",...[...new Set(allCustos.map(c=>c.pagador).filter(Boolean))].sort()],[allCustos]);
+  const tiposUnicos = ["TODOS",...TIPOS_CUSTO];
+  const naturezasUnicas = ["TODAS",...NATUREZAS];
 
   const COLS = [
     {key:"_check",label:"",w:36},
     {key:"data",label:"Data"},{key:"obra",label:"Obra"},{key:"banco",label:"Banco"},
     {key:"fornecedor",label:"Fornecedor"},{key:"categoria",label:"Categoria"},
     {key:"subcategoria",label:"Sub"},{key:"tipo",label:"Tipo"},
-    {key:"natureza",label:"Natureza"},{key:"obs",label:"Descrição"},
-    {key:"valor",label:"Valor"},{key:"_actions",label:""},
+    {key:"natureza",label:"Natureza"},{key:"pagador",label:"Pagador"},
+    {key:"obs",label:"Descrição"},{key:"valor",label:"Valor"},{key:"_actions",label:""},
   ];
 
   const sortedRows = useMemo(() => [...custos].sort((a,b)=>{
@@ -1479,7 +1564,17 @@ function CustosAba({ T, dark, custos, allCustos, setCustos, obras, bancos, cats,
     return m*(va<vb?-1:va>vb?1:0);
   }), [custos, fcSort]);
 
-  // grouped data
+  const GROUP_OPTIONS = [
+    {key:"none",label:"Sem agrupamento",icon:"—"},
+    {key:"obra",label:"Obra",icon:"⬡"},
+    {key:"categoria",label:"Categoria",icon:"🏷"},
+    {key:"mes",label:"Mês",icon:"📅"},
+    {key:"tipo",label:"Tipo de Custo",icon:"📂"},
+    {key:"natureza",label:"Natureza",icon:"⚖"},
+    {key:"pagador",label:"Pagador",icon:"👤"},
+    {key:"fornecedor",label:"Fornecedor",icon:"🏭"},
+  ];
+
   const grouped = useMemo(() => {
     if (fcGroupBy === "none") return null;
     const m = {};
@@ -1487,11 +1582,19 @@ function CustosAba({ T, dark, custos, allCustos, setCustos, obras, bancos, cats,
       const key = fcGroupBy === "obra" ? d.obra
         : fcGroupBy === "categoria" ? d.categoria
         : fcGroupBy === "mes" ? getMes(d.data)
+        : fcGroupBy === "tipo" ? d.tipo
+        : fcGroupBy === "natureza" ? d.natureza
+        : fcGroupBy === "pagador" ? (d.pagador || "—")
+        : fcGroupBy === "fornecedor" ? (d.fornecedor || "Sem fornecedor")
         : "—";
       if (!m[key]) m[key] = [];
       m[key].push(d);
     });
-    return Object.entries(m).sort((a,b) => a[0].localeCompare(b[0]));
+    return Object.entries(m).sort((a,b) => {
+      const ta = a[1].reduce((s,d)=>s+d.valor,0);
+      const tb = b[1].reduce((s,d)=>s+d.valor,0);
+      return tb - ta; // maior valor primeiro
+    });
   }, [sortedRows, fcGroupBy]);
 
   const allIds = sortedRows.map(d => d.id);
@@ -1503,112 +1606,68 @@ function CustosAba({ T, dark, custos, allCustos, setCustos, obras, bancos, cats,
     return <span style={{marginLeft:3,fontSize:9,color:T.accent}}>{fcSort.dir==="asc"?"↑":"↓"}</span>;
   };
 
-  // bulk edit field options
   const BULK_FIELDS = [
     {key:"",label:"-- campo --"},
-    {key:"data",label:"Data"},
-    {key:"obra",label:"Obra"},
-    {key:"banco",label:"Banco"},
-    {key:"categoria",label:"Categoria + Sub"},
-    {key:"tipo",label:"Tipo de Custo"},
-    {key:"natureza",label:"Natureza"},
-    {key:"pagador",label:"Pagador"},
-    {key:"fornecedor",label:"Fornecedor"},
+    {key:"data",label:"Data"},{key:"obra",label:"Obra"},{key:"banco",label:"Banco"},
+    {key:"categoria",label:"Categoria + Sub"},{key:"tipo",label:"Tipo de Custo"},
+    {key:"natureza",label:"Natureza"},{key:"pagador",label:"Pagador"},{key:"fornecedor",label:"Fornecedor"},
   ];
-
-  const bulkSubs = bulkField === "categoria" && bulkValue
-    ? (cats.find(c => c.nome === bulkValue)?.subs || [])
-    : [];
+  const bulkSubs = bulkField==="categoria"&&bulkValue ? (cats.find(c=>c.nome===bulkValue)?.subs||[]) : [];
 
   const renderBulkValueInput = () => {
     if (!bulkField) return null;
-    const si = {...inputStyle, width: "auto", minWidth: 140};
+    const si = {...inputStyle, width:"auto", minWidth:140, fontSize:12};
     switch(bulkField) {
-      case "data":
-        return <input type="date" value={bulkValue} onChange={e=>setBulkValue(e.target.value)} style={si}/>;
-      case "obra":
-        return <select value={bulkValue} onChange={e=>setBulkValue(e.target.value)} style={si}>
-          <option value="">-- selecione --</option>
-          {obras.map(o=><option key={o.id||o.nome}>{o.nome}</option>)}
-        </select>;
-      case "banco":
-        return <select value={bulkValue} onChange={e=>setBulkValue(e.target.value)} style={si}>
-          <option value="">-- selecione --</option>
-          {bancos.map(b=><option key={b.id||b.nome}>{b.nome}</option>)}
-        </select>;
-      case "categoria":
-        return <div style={{display:"flex",gap:6,alignItems:"center",flexWrap:"wrap"}}>
-          <select value={bulkValue} onChange={e=>{setBulkValue(e.target.value);setBulkSub("");}} style={si}>
-            <option value="">-- categoria --</option>
-            {cats.map(c=><option key={c.id}>{c.nome}</option>)}
-          </select>
-          {bulkSubs.length > 0 && (
-            <select value={bulkSub} onChange={e=>setBulkSub(e.target.value)} style={si}>
-              <option value="">-- sub --</option>
-              {bulkSubs.map(s=><option key={s}>{s}</option>)}
-            </select>
-          )}
-        </div>;
-      case "tipo":
-        return <select value={bulkValue} onChange={e=>setBulkValue(e.target.value)} style={si}>
-          <option value="">-- selecione --</option>
-          {TIPOS_CUSTO.map(t=><option key={t}>{t}</option>)}
-        </select>;
-      case "natureza":
-        return <select value={bulkValue} onChange={e=>setBulkValue(e.target.value)} style={si}>
-          <option value="">-- selecione --</option>
-          {NATUREZAS.map(n=><option key={n}>{n}</option>)}
-        </select>;
-      case "pagador":
-        return <select value={bulkValue} onChange={e=>setBulkValue(e.target.value)} style={si}>
-          <option value="">-- selecione --</option>
-          {["RBIM","JF"].map(p=><option key={p}>{p}</option>)}
-        </select>;
-      case "fornecedor":
-        return <input type="text" value={bulkValue} onChange={e=>setBulkValue(e.target.value)} placeholder="Nome do fornecedor..." style={si}/>;
+      case "data": return <input type="date" value={bulkValue} onChange={e=>setBulkValue(e.target.value)} style={si}/>;
+      case "obra": return <select value={bulkValue} onChange={e=>setBulkValue(e.target.value)} style={si}><option value="">--</option>{obras.map(o=><option key={o.id||o.nome}>{o.nome}</option>)}</select>;
+      case "banco": return <select value={bulkValue} onChange={e=>setBulkValue(e.target.value)} style={si}><option value="">--</option>{bancos.map(b=><option key={b.id||b.nome}>{b.nome}</option>)}</select>;
+      case "categoria": return <div style={{display:"flex",gap:6,alignItems:"center",flexWrap:"wrap"}}>
+        <select value={bulkValue} onChange={e=>{setBulkValue(e.target.value);setBulkSub("");}} style={si}><option value="">--</option>{cats.map(c=><option key={c.id}>{c.nome}</option>)}</select>
+        {bulkSubs.length>0 && <select value={bulkSub} onChange={e=>setBulkSub(e.target.value)} style={si}><option value="">-- sub --</option>{bulkSubs.map(s=><option key={s}>{s}</option>)}</select>}
+      </div>;
+      case "tipo": return <select value={bulkValue} onChange={e=>setBulkValue(e.target.value)} style={si}><option value="">--</option>{TIPOS_CUSTO.map(t=><option key={t}>{t}</option>)}</select>;
+      case "natureza": return <select value={bulkValue} onChange={e=>setBulkValue(e.target.value)} style={si}><option value="">--</option>{NATUREZAS.map(n=><option key={n}>{n}</option>)}</select>;
+      case "pagador": return <select value={bulkValue} onChange={e=>setBulkValue(e.target.value)} style={si}><option value="">--</option>{["RBIM","JF"].map(p=><option key={p}>{p}</option>)}</select>;
+      case "fornecedor": return <input type="text" value={bulkValue} onChange={e=>setBulkValue(e.target.value)} placeholder="Fornecedor..." style={si}/>;
       default: return null;
     }
   };
 
-  const checkStyle = {
-    width: 16, height: 16, borderRadius: 4, cursor: "pointer",
-    accentColor: T.accent, margin: 0,
-  };
+  const ck = {width:16,height:16,borderRadius:4,cursor:"pointer",accentColor:T.accent,margin:0};
 
-  const renderRow = (d, i, groupKey) => {
-    const isSelected = selectedIds.has(d.id);
+  // hidden cols by grouping
+  const hiddenByGroup = {obra:"obra",categoria:"categoria",tipo:"tipo",natureza:"natureza",pagador:"pagador",fornecedor:"fornecedor"};
+  const activeCols = COLS.filter(c => !(fcGroupBy in hiddenByGroup && hiddenByGroup[fcGroupBy]===c.key));
+
+  const renderRow = (d,i) => {
+    const sel = selectedIds.has(d.id);
     return (
-      <tr key={d.id??i} style={{
-        borderBottom:`1px solid ${T.border}`,
-        background: isSelected ? T.accent+"12" : i%2===0?"transparent":T.rowAlt,
-        transition:"background 0.1s",
-      }}
-        onMouseEnter={e=>{ if(!isSelected) e.currentTarget.style.background=T.accent+"08"; }}
-        onMouseLeave={e=>{ if(!isSelected) e.currentTarget.style.background=i%2===0?"transparent":T.rowAlt; }}
+      <tr key={d.id??i} style={{borderBottom:`1px solid ${T.border}`,background:sel?T.accent+"10":i%2===0?"transparent":T.rowAlt,transition:"background 0.12s"}}
+        onMouseEnter={e=>{if(!sel) e.currentTarget.style.background=T.accent+"06";}}
+        onMouseLeave={e=>{if(!sel) e.currentTarget.style.background=i%2===0?"transparent":T.rowAlt;}}
       >
-        <td style={{padding:"9px 8px",textAlign:"center",width:36}}>
-          <input type="checkbox" checked={isSelected} onChange={()=>toggleSelect(d.id)} style={checkStyle}/>
-        </td>
-        <td style={{padding:"9px 10px",color:T.text3,whiteSpace:"nowrap",fontSize:11}}>{d.data}</td>
-        {fcGroupBy !== "obra" && <td style={{padding:"9px 10px",fontWeight:600,whiteSpace:"nowrap",fontSize:11}}>{d.obra}</td>}
-        <td style={{padding:"9px 10px",color:T.text3,fontSize:11}}>{d.banco}</td>
-        <td style={{padding:"9px 10px",fontSize:11}}>{d.fornecedor||"—"}</td>
-        {fcGroupBy !== "categoria" && <td style={{padding:"9px 10px",color:T.accent2,fontSize:10}}>{d.categoria}</td>}
-        <td style={{padding:"9px 10px",color:T.text3,fontSize:10}}>{d.subcategoria}</td>
-        <td style={{padding:"9px 10px"}}><span style={{background:T.info+"18",color:T.info,padding:"2px 7px",borderRadius:6,fontSize:9,fontWeight:600}}>{d.tipo}</span></td>
-        <td style={{padding:"9px 10px"}}><span style={{background:T.accent+"18",color:T.accent,padding:"2px 7px",borderRadius:6,fontSize:9,fontWeight:600}}>{d.natureza}</span></td>
-        <td style={{padding:"9px 10px",color:T.text2,maxWidth:150,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap",fontSize:11}}>{d.obs}</td>
-        <td style={{padding:"9px 10px",fontWeight:700,color:T.accent,textAlign:"right",whiteSpace:"nowrap",fontSize:11}}>{fmt(d.valor)}</td>
-        <td style={{padding:"9px 8px",whiteSpace:"nowrap"}}>
-          <div style={{display:"flex",gap:4}}>
+        <td style={{padding:"8px 8px",textAlign:"center",width:36}}><input type="checkbox" checked={sel} onChange={()=>toggleSelect(d.id)} style={ck}/></td>
+        <td style={{padding:"8px 10px",color:T.text3,whiteSpace:"nowrap",fontSize:11}}>{d.data}</td>
+        {fcGroupBy!=="obra" && <td style={{padding:"8px 10px",fontWeight:600,whiteSpace:"nowrap",fontSize:11}}>{d.obra}</td>}
+        <td style={{padding:"8px 10px",color:T.text3,fontSize:11}}>{d.banco}</td>
+        <td style={{padding:"8px 10px",fontSize:11}}>{d.fornecedor||"—"}</td>
+        {fcGroupBy!=="categoria" && <td style={{padding:"8px 10px",color:T.accent2,fontSize:10,fontWeight:500}}>{d.categoria}</td>}
+        <td style={{padding:"8px 10px",color:T.text3,fontSize:10}}>{d.subcategoria}</td>
+        {fcGroupBy!=="tipo" && <td style={{padding:"8px 10px"}}><span style={{background:T.info+"15",color:T.info,padding:"2px 7px",borderRadius:5,fontSize:9,fontWeight:600}}>{d.tipo}</span></td>}
+        {fcGroupBy!=="natureza" && <td style={{padding:"8px 10px"}}><span style={{background:T.accent+"15",color:T.accent,padding:"2px 7px",borderRadius:5,fontSize:9,fontWeight:600}}>{d.natureza}</span></td>}
+        {fcGroupBy!=="pagador" && <td style={{padding:"8px 10px",color:T.text3,fontSize:10,fontWeight:500}}>{d.pagador||"—"}</td>}
+        <td style={{padding:"8px 10px",color:T.text2,maxWidth:140,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap",fontSize:11}}>{d.obs}</td>
+        <td style={{padding:"8px 10px",fontWeight:700,color:T.accent,textAlign:"right",whiteSpace:"nowrap",fontSize:11}}>{fmt(d.valor)}</td>
+        <td style={{padding:"8px 6px",whiteSpace:"nowrap"}}>
+          <div style={{display:"flex",gap:3}}>
             <button onClick={()=>openModal("custo_edit",d)} title="Editar"
-              style={{background:"transparent",border:`1px solid ${T.border2}`,color:T.text2,borderRadius:6,padding:"3px 8px",cursor:"pointer",fontSize:10,fontFamily:T.fontFamily||"inherit",transition:"all 0.12s",lineHeight:1}}
-              onMouseEnter={e=>{e.currentTarget.style.background=T.accent+"18";e.currentTarget.style.color=T.accent;}}
-              onMouseLeave={e=>{e.currentTarget.style.background="transparent";e.currentTarget.style.color=T.text2;}}
+              style={{background:"transparent",border:`1px solid ${T.border2}`,color:T.text3,borderRadius:5,padding:"3px 7px",cursor:"pointer",fontSize:10,fontFamily:T.fontFamily||"inherit",transition:"all 0.12s",lineHeight:1}}
+              onMouseEnter={e=>{e.currentTarget.style.background=T.accent+"15";e.currentTarget.style.color=T.accent;}}
+              onMouseLeave={e=>{e.currentTarget.style.background="transparent";e.currentTarget.style.color=T.text3;}}
             >✏</button>
-            <button onClick={async ()=>{ if(window.confirm(`Excluir "${d.obs||d.categoria}" (${fmt(d.valor)})?`)){ await sbFetch("custos",{method:"DELETE",id:d.id}); setCustos(prev=>prev.filter(c=>c.id!==d.id)); }}} title="Excluir"
-              style={{background:"transparent",border:`1px solid ${T.border2}`,color:T.text3,borderRadius:6,padding:"3px 8px",cursor:"pointer",fontSize:10,fontFamily:T.fontFamily||"inherit",transition:"all 0.12s",lineHeight:1}}
-              onMouseEnter={e=>{e.currentTarget.style.background=T.danger+"18";e.currentTarget.style.color=T.danger;}}
+            <button onClick={async()=>{if(window.confirm(`Excluir "${d.obs||d.categoria}" (${fmt(d.valor)})?`)){await sbFetch("custos",{method:"DELETE",id:d.id});setCustos(prev=>prev.filter(c=>c.id!==d.id));}}} title="Excluir"
+              style={{background:"transparent",border:`1px solid ${T.border2}`,color:T.text3,borderRadius:5,padding:"3px 7px",cursor:"pointer",fontSize:10,fontFamily:T.fontFamily||"inherit",transition:"all 0.12s",lineHeight:1}}
+              onMouseEnter={e=>{e.currentTarget.style.background=T.danger+"15";e.currentTarget.style.color=T.danger;}}
               onMouseLeave={e=>{e.currentTarget.style.background="transparent";e.currentTarget.style.color=T.text3;}}
             >✕</button>
           </div>
@@ -1617,45 +1676,80 @@ function CustosAba({ T, dark, custos, allCustos, setCustos, obras, bancos, cats,
     );
   };
 
-  const activeCols = COLS.filter(c => {
-    if (fcGroupBy === "obra" && c.key === "obra") return false;
-    if (fcGroupBy === "categoria" && c.key === "categoria") return false;
-    return true;
-  });
+  const selTotal = [...selectedIds].reduce((s,id)=>{const c=custos.find(x=>x.id===id);return s+(c?.valor||0);},0);
+  const si = {...inputStyle,fontSize:12};
 
   return (
     <div>
-      {/* Header */}
+      {/* ── KPI Cards ── */}
+      <div className="rbim-kpi-row" style={{display:"flex",gap:10,marginBottom:16,flexWrap:"wrap"}}>
+        <div style={{...surface({padding:"16px 20px"}),flex:1,minWidth:140,borderTop:`2px solid ${T.accent}`}}>
+          <div style={{fontSize:9,color:T.text3,textTransform:"uppercase",letterSpacing:"0.1em",fontWeight:600,marginBottom:6}}>Total Filtrado</div>
+          <div style={{fontSize:20,fontWeight:700,color:T.accent,fontFamily:T.fontDisplay,letterSpacing:"-0.02em"}}>{fmt(totalFiltrado)}</div>
+          <div style={{fontSize:10,color:T.text3,marginTop:4}}>{countFiltrado} lançamento{countFiltrado!==1?"s":""}</div>
+        </div>
+        {NATUREZAS.map(n=>(
+          <div key={n} style={{...surface({padding:"16px 20px"}),flex:1,minWidth:120}}>
+            <div style={{fontSize:9,color:T.text3,textTransform:"uppercase",letterSpacing:"0.1em",fontWeight:600,marginBottom:6}}>{n}</div>
+            <div style={{fontSize:17,fontWeight:700,color:n==="Material"?T.info:n==="Mão de Obra"?T.accent2:T.success,fontFamily:T.fontDisplay,letterSpacing:"-0.02em"}}>{fmt(porNatureza[n]||0)}</div>
+            <div style={{fontSize:10,color:T.text3,marginTop:4}}>{totalFiltrado>0?((porNatureza[n]||0)/totalFiltrado*100).toFixed(0):0}%</div>
+          </div>
+        ))}
+      </div>
+
+      {/* ── Header toolbar ── */}
       <div className="rbim-filter-row" style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:12,gap:10,flexWrap:"wrap"}}>
-        <div style={{fontWeight:700,fontSize:16,fontFamily:T.fontDisplay||"inherit",letterSpacing:"-0.01em"}}>Lançamentos de Custos</div>
+        <div style={{display:"flex",alignItems:"center",gap:10,flexWrap:"wrap"}}>
+          <div style={{fontWeight:700,fontSize:16,fontFamily:T.fontDisplay||"inherit",letterSpacing:"-0.01em"}}>Lançamentos</div>
+          {/* Active filters badge */}
+          {activeFiltersCount > 0 && (
+            <span style={{background:T.accent+"18",color:T.accent,padding:"3px 10px",borderRadius:999,fontSize:10,fontWeight:700}}>
+              {activeFiltersCount} filtro{activeFiltersCount>1?"s":""} ativo{activeFiltersCount>1?"s":""}
+            </span>
+          )}
+        </div>
         <div style={{display:"flex",gap:8,alignItems:"center",flexWrap:"wrap"}}>
-          <button onClick={()=>openModal("custo")} style={btnPrimary}>+ Novo Custo</button>
+          <button onClick={()=>setShowFilters(!showFilters)} style={{...btnGhost,fontSize:11,padding:"7px 14px",display:"flex",alignItems:"center",gap:5}}>
+            <span style={{fontSize:13}}>⚙</span> Filtros {showFilters?"▲":"▼"}
+            {activeFiltersCount>0 && <span style={{background:T.accent,color:"#fff",borderRadius:999,fontSize:9,padding:"1px 5px",fontWeight:700,marginLeft:2}}>{activeFiltersCount}</span>}
+          </button>
+          <button onClick={()=>openModal("custo")} style={{...btnPrimary,padding:"7px 18px",fontSize:12}}>+ Novo Custo</button>
         </div>
       </div>
 
-      {/* Filtros + agrupamento */}
-      <div className="rbim-filter-row" style={{...surface({padding:"14px 18px",marginBottom:14}),display:"flex",gap:10,flexWrap:"wrap",alignItems:"flex-end"}}>
-        {[["Obra",fcObra,setFcObra,obrasNames],["Categoria",fcCat,setFcCat,catsNames]].map(([lbl,val,set,opts])=>(
-          <div key={lbl} style={{display:"flex",flexDirection:"column",gap:3}}>
-            <label style={labelStyle}>{lbl}</label>
-            <select value={val} onChange={e=>set(e.target.value)} style={{...inputStyle,width:130}}>
-              {opts.map(o=><option key={o}>{o}</option>)}
-            </select>
+      {/* ── Expanded Filters Panel ── */}
+      {showFilters && (
+        <div style={{...surface({padding:"16px 20px",marginBottom:14}),animation:"slideDown 0.15s ease-out"}}>
+          <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill, minmax(150px, 1fr))",gap:10,marginBottom:10}}>
+            <div><label style={labelStyle}>Obra</label><select value={fcObra} onChange={e=>setFcObra(e.target.value)} style={si}>{obrasNames.map(o=><option key={o}>{o}</option>)}</select></div>
+            <div><label style={labelStyle}>Categoria</label><select value={fcCat} onChange={e=>setFcCat(e.target.value)} style={si}>{catsNames.map(o=><option key={o}>{o}</option>)}</select></div>
+            <div><label style={labelStyle}>Tipo de Custo</label><select value={fcTipo} onChange={e=>setFcTipo(e.target.value)} style={si}>{tiposUnicos.map(o=><option key={o}>{o}</option>)}</select></div>
+            <div><label style={labelStyle}>Natureza</label><select value={fcNatureza} onChange={e=>setFcNatureza(e.target.value)} style={si}>{naturezasUnicas.map(o=><option key={o}>{o}</option>)}</select></div>
+            <div><label style={labelStyle}>Pagador</label><select value={fcPagador} onChange={e=>setFcPagador(e.target.value)} style={si}>{pagadoresUnicos.map(o=><option key={o}>{o}</option>)}</select></div>
+            <div><label style={labelStyle}>Banco</label><select value={fcBanco} onChange={e=>setFcBanco(e.target.value)} style={si}>{bancosUnicos.map(o=><option key={o}>{o}</option>)}</select></div>
+            <div><label style={labelStyle}>Data de</label><input type="date" value={fcDateFrom} onChange={e=>setFcDateFrom(e.target.value)} style={si}/></div>
+            <div><label style={labelStyle}>Data até</label><input type="date" value={fcDateTo} onChange={e=>setFcDateTo(e.target.value)} style={si}/></div>
           </div>
+          <div style={{display:"flex",gap:10,alignItems:"center",flexWrap:"wrap"}}>
+            <div style={{flex:1,minWidth:180}}><label style={labelStyle}>Buscar (descrição / fornecedor / sub)</label><input value={fcSearch} onChange={e=>setFcSearch(e.target.value)} placeholder="Pesquisar..." style={si}/></div>
+            {activeFiltersCount>0 && <button onClick={clearCustosFilters} style={{...btnGhost,fontSize:11,color:T.danger,borderColor:T.danger+"33",marginTop:18}}>✕ Limpar filtros</button>}
+          </div>
+        </div>
+      )}
+
+      {/* ── Grouping selector ── */}
+      <div style={{...surface({padding:"10px 18px",marginBottom:14}),display:"flex",alignItems:"center",gap:8,flexWrap:"wrap"}}>
+        <span style={{fontSize:10,color:T.text3,fontWeight:600,textTransform:"uppercase",letterSpacing:"0.08em",flexShrink:0}}>Agrupar:</span>
+        {GROUP_OPTIONS.map(g=>(
+          <button key={g.key} onClick={()=>{setFcGroupBy(g.key);setCollapsedGroups(new Set());clearSelection();}}
+            style={{
+              padding:"5px 12px",borderRadius:8,border:"none",cursor:"pointer",fontSize:11,fontWeight:fcGroupBy===g.key?700:400,fontFamily:T.fontFamily,
+              background:fcGroupBy===g.key?T.accent+"18":"transparent",
+              color:fcGroupBy===g.key?T.accent:T.text3,
+              transition:"all 0.15s",
+            }}
+          >{g.icon} {g.label}</button>
         ))}
-        <div style={{display:"flex",flexDirection:"column",gap:3}}>
-          <label style={labelStyle}>Agrupar por</label>
-          <select value={fcGroupBy} onChange={e=>{setFcGroupBy(e.target.value);setCollapsedGroups(new Set());}} style={{...inputStyle,width:130}}>
-            <option value="none">Sem agrupamento</option>
-            <option value="obra">Obra</option>
-            <option value="categoria">Categoria</option>
-            <option value="mes">Mês</option>
-          </select>
-        </div>
-        <div style={{display:"flex",flexDirection:"column",gap:3,flex:1,minWidth:140}}>
-          <label style={labelStyle}>Buscar</label>
-          <input value={fcSearch} onChange={e=>setFcSearch(e.target.value)} placeholder="Descrição ou fornecedor..." style={inputStyle}/>
-        </div>
       </div>
 
       {/* ── Bulk Edit Bar ── */}
@@ -1667,120 +1761,92 @@ function CustosAba({ T, dark, custos, allCustos, setCustos, obras, bancos, cats,
           animation:"fadeUp 0.15s ease-out",
         }}>
           <div style={{fontWeight:700,fontSize:13,color:T.accent,flexShrink:0}}>
-            {selectedIds.size} selecionado{selectedIds.size>1?"s":""}
+            {selectedIds.size} sel. · <span style={{fontFamily:T.fontDisplay}}>{fmt(selTotal)}</span>
           </div>
-
           <div style={{height:20,width:1,background:T.border2,flexShrink:0}}/>
-
-          {/* Campo a alterar */}
-          <select value={bulkField} onChange={e=>{setBulkField(e.target.value);setBulkValue("");setBulkSub("");}} style={{...inputStyle,width:"auto",minWidth:140}}>
+          <select value={bulkField} onChange={e=>{setBulkField(e.target.value);setBulkValue("");setBulkSub("");}} style={{...si,width:"auto",minWidth:130}}>
             {BULK_FIELDS.map(f=><option key={f.key} value={f.key}>{f.label}</option>)}
           </select>
-
-          {/* Valor */}
           {renderBulkValueInput()}
-
-          {/* Ações */}
           <div style={{display:"flex",gap:6,marginLeft:"auto",flexShrink:0}}>
             {bulkField && bulkValue && (
-              <button onClick={applyBulkEdit} style={{...btnPrimary,padding:"7px 16px",fontSize:12}}>
-                ✓ Aplicar em {selectedIds.size}
-              </button>
+              <button onClick={applyBulkEdit} style={{...btnPrimary,padding:"6px 14px",fontSize:11}}>✓ Aplicar</button>
             )}
-            <button onClick={applyBulkDelete}
-              style={{...btnGhost,color:T.danger,borderColor:T.danger+"44",padding:"7px 14px",fontSize:12}}>
-              🗑 Excluir ({selectedIds.size})
-            </button>
-            <button onClick={clearSelection} style={{...btnGhost,padding:"7px 12px",fontSize:12}}>✕</button>
+            <button onClick={applyBulkDelete} style={{...btnGhost,color:T.danger,borderColor:T.danger+"33",padding:"6px 12px",fontSize:11}}>🗑 Excluir</button>
+            <button onClick={clearSelection} style={{...btnGhost,padding:"6px 10px",fontSize:11}}>✕</button>
           </div>
         </div>
       )}
 
-      {/* ── Table ── */}
+      {/* ── Data Table ── */}
       <div style={surface({padding:0,overflow:"hidden"})}>
-        {/* Summary bar */}
-        <div style={{padding:"12px 18px",borderBottom:`1px solid ${T.border}`,display:"flex",justifyContent:"space-between",alignItems:"center",flexWrap:"wrap",gap:8}}>
-          <span style={{fontWeight:600,fontSize:13}}>
-            {custos.length} registros · <span style={{color:T.accent,fontWeight:700}}>{fmt(custos.reduce((s,d)=>s+d.valor,0))}</span>
-            {someSelected && <span style={{color:T.text3,marginLeft:8,fontSize:11}}>
-              · seleção: <span style={{color:T.accent}}>{fmt([...selectedIds].reduce((s,id)=>{const c=custos.find(x=>x.id===id);return s+(c?.valor||0);},0))}</span>
-            </span>}
+        <div style={{padding:"12px 18px",borderBottom:`1px solid ${T.border}`,display:"flex",justifyContent:"space-between",alignItems:"center",flexWrap:"wrap",gap:6}}>
+          <span style={{fontWeight:600,fontSize:12}}>
+            {countFiltrado} registros · <span style={{color:T.accent,fontWeight:700}}>{fmt(totalFiltrado)}</span>
           </span>
-          <span style={{fontSize:11,color:T.text3}}>
-            {fcGroupBy !== "none" ? `Agrupado por ${fcGroupBy === "obra" ? "obra" : fcGroupBy === "categoria" ? "categoria" : "mês"}` : "Clique no cabeçalho para ordenar"}
+          <span style={{fontSize:10,color:T.text3}}>
+            {fcGroupBy!=="none"
+              ? `Agrupado por ${GROUP_OPTIONS.find(g=>g.key===fcGroupBy)?.label||fcGroupBy} · ${grouped?.length||0} grupos`
+              : "Clique no cabeçalho para ordenar"}
           </span>
         </div>
-
         <div style={{overflowX:"auto",maxHeight:600,overflowY:"auto"}}>
           <table style={{width:"100%",borderCollapse:"collapse",fontSize:11}}>
             <thead style={{position:"sticky",top:0,background:T.surfaceSolid||T.surface2,zIndex:1}}>
               <tr>
                 {activeCols.map(({key,label})=>(
                   <th key={key}
-                    onClick={key!=="_actions"&&key!=="_check" ? ()=>toggleSort(key) : key==="_check" ? ()=>allSelected?clearSelection():selectAll(allIds) : undefined}
+                    onClick={key!=="_actions"&&key!=="_check"?()=>toggleSort(key):key==="_check"?()=>allSelected?clearSelection():selectAll(allIds):undefined}
                     style={{
-                      padding: key==="_check"?"10px 8px":"10px 10px",
-                      textAlign: key==="valor"?"right": key==="_check"?"center":"left",
-                      color: key==="_check"?T.accent : fcSort.col===key?T.accent:T.text3,
-                      fontWeight:600,fontSize:10,
-                      borderBottom:`1px solid ${T.border}`,
-                      whiteSpace:"nowrap",
-                      letterSpacing:"0.06em",textTransform:"uppercase",
-                      cursor: key!=="_actions"?"pointer":"default",
-                      userSelect:"none",transition:"color 0.15s",
-                      background: fcSort.col===key ? T.accent+"0A" : "transparent",
-                      width: key==="_check"?36: key==="_actions"?70:undefined,
+                      padding:key==="_check"?"8px 8px":"8px 10px",
+                      textAlign:key==="valor"?"right":key==="_check"?"center":"left",
+                      color:key==="_check"?T.accent:fcSort.col===key?T.accent:T.text3,
+                      fontWeight:600,fontSize:9.5,borderBottom:`1px solid ${T.border}`,
+                      whiteSpace:"nowrap",letterSpacing:"0.07em",textTransform:"uppercase",
+                      cursor:key!=="_actions"?"pointer":"default",userSelect:"none",
+                      transition:"color 0.15s",
+                      background:fcSort.col===key?T.accent+"08":"transparent",
+                      width:key==="_check"?36:key==="_actions"?64:undefined,
                     }}
                   >
-                    {key==="_check" ? (
-                      <input type="checkbox" checked={allSelected} onChange={()=>allSelected?clearSelection():selectAll(allIds)} style={{width:15,height:15,borderRadius:4,cursor:"pointer",accentColor:T.accent,margin:0}}/>
-                    ) : (<>{label}{key!=="_actions" && <SortIcon col={key}/>}</>)}
+                    {key==="_check"?<input type="checkbox" checked={allSelected} onChange={()=>allSelected?clearSelection():selectAll(allIds)} style={{width:14,height:14,borderRadius:3,cursor:"pointer",accentColor:T.accent,margin:0}}/>
+                    :<>{label}{key!=="_actions"&&<SortIcon col={key}/>}</>}
                   </th>
                 ))}
               </tr>
             </thead>
 
-            {/* ── Non-grouped ── */}
-            {!grouped && (
-              <tbody>{sortedRows.map((d,i)=>renderRow(d,i,null))}</tbody>
-            )}
+            {!grouped && <tbody>{sortedRows.map((d,i)=>renderRow(d,i))}</tbody>}
 
-            {/* ── Grouped ── */}
             {grouped && grouped.map(([groupKey, rows]) => {
-              const isCollapsed = collapsedGroups.has(groupKey);
-              const groupTotal = rows.reduce((s,d)=>s+d.valor,0);
-              const groupSelected = rows.filter(d=>selectedIds.has(d.id)).length;
-              const allGroupSelected = rows.length > 0 && rows.every(d=>selectedIds.has(d.id));
-              const groupIcon = fcGroupBy === "obra" ? "⬡" : fcGroupBy === "categoria" ? (CAT_ICONS[groupKey] || "📁") : "📅";
-
+              const isC = collapsedGroups.has(groupKey);
+              const gTotal = rows.reduce((s,d)=>s+d.valor,0);
+              const gSel = rows.filter(d=>selectedIds.has(d.id)).length;
+              const gAllSel = rows.length>0 && rows.every(d=>selectedIds.has(d.id));
+              const gIcon = fcGroupBy==="obra"?"⬡":fcGroupBy==="categoria"?(CAT_ICONS[groupKey]||"📁"):fcGroupBy==="mes"?"📅":fcGroupBy==="tipo"?"📂":fcGroupBy==="natureza"?"⚖":fcGroupBy==="pagador"?"👤":"🏭";
+              const gPct = totalFiltrado>0 ? (gTotal/totalFiltrado*100).toFixed(0) : 0;
               return (
                 <tbody key={groupKey}>
-                  {/* Group header row */}
-                  <tr style={{background:T.accent+"0A",borderBottom:`1px solid ${T.border}`}}>
+                  <tr style={{background:T.surface2,borderBottom:`1px solid ${T.border}`}}>
                     <td style={{padding:"8px 8px",textAlign:"center"}}>
-                      <input type="checkbox" checked={allGroupSelected}
-                        onChange={()=>{
-                          const ids = rows.map(d=>d.id);
-                          if(allGroupSelected) { setSelectedIds(prev=>{const n=new Set(prev);ids.forEach(id=>n.delete(id));return n;}); }
-                          else { setSelectedIds(prev=>{const n=new Set(prev);ids.forEach(id=>n.add(id));return n;}); }
-                        }}
-                        style={{width:15,height:15,borderRadius:4,cursor:"pointer",accentColor:T.accent,margin:0}}
-                      />
+                      <input type="checkbox" checked={gAllSel}
+                        onChange={()=>{const ids=rows.map(d=>d.id);if(gAllSel){setSelectedIds(prev=>{const n=new Set(prev);ids.forEach(id=>n.delete(id));return n;});}else{setSelectedIds(prev=>{const n=new Set(prev);ids.forEach(id=>n.add(id));return n;});}}}
+                        style={{width:14,height:14,borderRadius:3,cursor:"pointer",accentColor:T.accent,margin:0}}/>
                     </td>
-                    <td colSpan={activeCols.length - 2} style={{padding:"8px 10px",cursor:"pointer"}} onClick={()=>toggleGroup(groupKey)}>
+                    <td colSpan={activeCols.length-2} style={{padding:"8px 10px",cursor:"pointer"}} onClick={()=>toggleGroup(groupKey)}>
                       <div style={{display:"flex",alignItems:"center",gap:8}}>
-                        <span style={{fontSize:14}}>{groupIcon}</span>
-                        <span style={{fontWeight:700,fontSize:12,color:T.text}}>{groupKey || "—"}</span>
-                        <span style={{fontSize:10,color:T.text3,fontWeight:500}}>{rows.length} lançamento{rows.length>1?"s":""}</span>
-                        {groupSelected > 0 && <span style={{fontSize:9,color:T.accent,background:T.accent+"18",padding:"1px 7px",borderRadius:999,fontWeight:600}}>{groupSelected} sel.</span>}
-                        <span style={{marginLeft:"auto",fontWeight:700,fontSize:12,color:T.accent,fontFamily:T.fontDisplay||"inherit"}}>{fmt(groupTotal)}</span>
-                        <span style={{fontSize:10,color:T.text3,marginLeft:6,transition:"transform 0.2s",transform:isCollapsed?"rotate(-90deg)":"rotate(0deg)",display:"inline-block"}}>▼</span>
+                        <span style={{fontSize:13}}>{gIcon}</span>
+                        <span style={{fontWeight:700,fontSize:12,color:T.text}}>{groupKey||"—"}</span>
+                        <span style={{fontSize:10,color:T.text3}}>{rows.length} itens</span>
+                        <span style={{fontSize:9,color:T.text3,background:T.surface,padding:"2px 7px",borderRadius:4}}>{gPct}%</span>
+                        {gSel>0 && <span style={{fontSize:9,color:T.accent,background:T.accent+"15",padding:"1px 7px",borderRadius:999,fontWeight:600}}>{gSel} sel.</span>}
+                        <span style={{marginLeft:"auto",fontWeight:700,fontSize:12,color:T.accent,fontFamily:T.fontDisplay}}>{fmt(gTotal)}</span>
+                        <span style={{fontSize:10,color:T.text3,marginLeft:4,transition:"transform 0.2s",transform:isC?"rotate(-90deg)":"rotate(0deg)",display:"inline-block"}}>▼</span>
                       </div>
                     </td>
-                    <td style={{padding:"8px 8px"}}/>
+                    <td style={{padding:"8px 6px"}}/>
                   </tr>
-                  {/* Group rows */}
-                  {!isCollapsed && rows.map((d,i) => renderRow(d,i,groupKey))}
+                  {!isC && rows.map((d,i)=>renderRow(d,i))}
                 </tbody>
               );
             })}
@@ -1788,12 +1854,12 @@ function CustosAba({ T, dark, custos, allCustos, setCustos, obras, bancos, cats,
         </div>
       </div>
 
-      {/* ── Ideias / Dicas ── */}
-      {custos.length === 0 && (
+      {countFiltrado===0 && (
         <div style={{...surface({textAlign:"center",padding:"48px 20px",marginTop:14})}}>
           <div style={{fontSize:36,marginBottom:12}}>💸</div>
           <div style={{fontWeight:700,fontSize:15,marginBottom:6}}>Nenhum lançamento encontrado</div>
           <div style={{fontSize:12,color:T.text3,marginBottom:16}}>Ajuste os filtros ou crie um novo custo</div>
+          {activeFiltersCount>0 && <button onClick={clearCustosFilters} style={btnGhost}>✕ Limpar filtros</button>}
         </div>
       )}
     </div>
