@@ -4,8 +4,11 @@ import React, { useState, useMemo, useEffect, useCallback, useRef, createContext
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, LineChart, Line, CartesianGrid } from "recharts";
 
 // ─── SUPABASE CLIENT ─────────────────────────────────────────────────────────
-const SUPABASE_URL = "https://jcxnjcwohnuunaqnkzoh.supabase.co";
-const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImpjeG5qY3dvaG51dW5hcW5rem9oIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI3MjQ0NzksImV4cCI6MjA4ODMwMDQ3OX0.aGfeH4s7Hfftm36DqqRebazgK4X_z-buakm0IW-h8Eo";
+const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
+const SUPABASE_KEY = import.meta.env.VITE_SUPABASE_KEY;
+if (!SUPABASE_URL || !SUPABASE_KEY) {
+  console.error("[RBIM] Variáveis VITE_SUPABASE_URL e VITE_SUPABASE_KEY não configuradas. Verifique o arquivo .env");
+}
 
 async function sbFetch(table, options = {}) {
   const { method = "GET", body, params = "", id } = options;
@@ -695,6 +698,65 @@ function CurrencyInput({ value, onChange, label, required, inputStyle, labelStyl
 }
 
 
+// ─── TOAST NOTIFICATION ───────────────────────────────────────────────────────
+function ToastContainer({ toasts, onDismiss, T }) {
+  if (!toasts.length) return null;
+  const colors = { success: T.success, error: T.danger, warning: T.accent2 || "#F59E0B" };
+  return (
+    <div style={{ position:"fixed", bottom:24, right:24, zIndex:9999, display:"flex", flexDirection:"column", gap:8, alignItems:"flex-end", pointerEvents:"none" }}>
+      {toasts.map(t => (
+        <div key={t.id} style={{
+          background: T.glassBg || T.surface,
+          backdropFilter: T.glassBlur,
+          WebkitBackdropFilter: T.glassBlur,
+          border: `1px solid ${colors[t.type] || T.border}55`,
+          borderLeft: `3px solid ${colors[t.type] || T.accent}`,
+          borderRadius: 10,
+          padding: "10px 16px",
+          color: T.text,
+          fontSize: 13,
+          fontWeight: 500,
+          boxShadow: T.shadow,
+          maxWidth: 320,
+          pointerEvents: "auto",
+          animation: "fadeUp 0.2s ease-out",
+          display: "flex",
+          alignItems: "center",
+          gap: 10,
+        }}>
+          <span style={{ color: colors[t.type], fontSize:16 }}>
+            {t.type === "success" ? "✓" : t.type === "error" ? "✕" : "⚠"}
+          </span>
+          <span style={{ flex:1 }}>{t.msg}</span>
+          <button onClick={() => onDismiss(t.id)} style={{
+            background:"none", border:"none", cursor:"pointer", color:T.text3, fontSize:14, padding:"0 2px", lineHeight:1
+          }}>×</button>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+// ─── CSV EXPORT UTILITY ────────────────────────────────────────────────────────
+function exportCSV(rows, filename, columns) {
+  const bom = "\uFEFF";
+  const header = columns.map(c => c.label).join(";");
+  const body = rows.map(row =>
+    columns.map(c => {
+      let val = row[c.key] ?? "";
+      if (c.key === "valor") val = String(Number(val).toFixed(2)).replace(".", ",");
+      else if (c.type === "date" && val) val = val.split("-").reverse().join("/");
+      const str = String(val).replace(/"/g, '""');
+      return str.includes(";") || str.includes("\n") ? `"${str}"` : str;
+    }).join(";")
+  ).join("\n");
+  const blob = new Blob([bom + header + "\n" + body], { type: "text/csv;charset=utf-8;" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url; a.download = filename; a.click();
+  URL.revokeObjectURL(url);
+}
+
 // ─── APP ──────────────────────────────────────────────────────────────────────
 export default function App() {
   const [dark, setDark] = useState(false);
@@ -702,6 +764,15 @@ export default function App() {
   const isMobile = useIsMobile();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [quickCostOpen, setQuickCostOpen] = useState(false);
+
+  // ── Toast notifications ───────────────────────────────────────────────────
+  const [toasts, setToasts] = useState([]);
+  const showToast = useCallback((msg, type = "success") => {
+    const id = Date.now() + Math.random();
+    setToasts(prev => [...prev, { id, msg, type }]);
+    setTimeout(() => setToasts(prev => prev.filter(t => t.id !== id)), 4000);
+  }, []);
+  const dismissToast = (id) => setToasts(prev => prev.filter(t => t.id !== id));
 
   // ── Estado — começa vazio, carregado do Supabase ──────────────────────────
   const [obras,    setObras]    = useState([]);
@@ -814,6 +885,7 @@ export default function App() {
     const ids = [...selectedIds];
     await Promise.all(ids.map(id => sbFetch("custos", { method: "PATCH", id, body: updates })));
     setCustos(prev => prev.map(c => selectedIds.has(c.id) ? { ...c, ...updates } : c));
+    showToast(`${ids.length} lançamento(s) atualizado(s).`, "success");
     clearSelection();
     setBulkField("");
     setBulkValue("");
@@ -827,6 +899,7 @@ export default function App() {
     const ids = [...selectedIds];
     await Promise.all(ids.map(id => sbFetch("custos", { method: "DELETE", id })));
     setCustos(prev => prev.filter(c => !selectedIds.has(c.id)));
+    showToast(`${ids.length} lançamento(s) excluído(s).`, "success");
     clearSelection();
   };
 
@@ -852,7 +925,8 @@ export default function App() {
     // 1. insere como custo pago
     const novoCusto = {data:hoje,obra:item.obra,banco:item.banco||"Sicredi",fornecedor:item.fornecedor,categoria:item.categoria,subcategoria:item.subcategoria,tipo:item.tipo,natureza:item.natureza,valor:item.valor,obs:item.descricao,pagador:item.pagador};
     const res = await sbFetch("custos", { method:"POST", body:{...novoCusto} });
-    if (res?.[0]) setCustos(prev=>[...prev, mapCusto(res[0])]);
+    if (res?.[0]) { setCustos(prev=>[...prev, mapCusto(res[0])]); showToast(`"${item.descricao}" marcada como paga e lançada em custos.`, "success"); }
+    else { showToast("Erro ao lançar custo. Verifique a conexão.", "error"); return; }
     // 2. marca como pago no a_pagar
     await sbFetch("apagar", { method:"PATCH", id:item.id, body:{pago:true, data_pago:hoje} });
     setApagar(prev=>prev.map(a=>a.id===item.id?{...a,pago:true,dataPago:hoje}:a));
@@ -1336,6 +1410,7 @@ export default function App() {
           applyBulkDelete={applyBulkDelete}
           obrasNames={obrasNames} catsNames={catsNames}
           openModal={openModal}
+          showToast={showToast}
           surface={surface} inputStyle={inputStyle}
           labelStyle={labelStyle} btnPrimary={btnPrimary} btnGhost={btnGhost}
         />
@@ -1393,7 +1468,13 @@ export default function App() {
           {vencidas.length>0 && <div style={{background:T.danger+"12",border:`1px solid ${T.danger}33`,borderRadius:10,padding:"10px 16px",marginBottom:14,fontSize:12,color:T.danger,fontWeight:600,display:"flex",alignItems:"center",gap:8}}>
             <span>⚠</span> {vencidas.length} conta(s) vencida(s) — atenção necessária
           </div>}
-          <div style={{display:"flex",justifyContent:"flex-end",marginBottom:10}}>
+          <div style={{display:"flex",justifyContent:"flex-end",gap:8,marginBottom:10}}>
+            <button onClick={()=>exportCSV(apagarPend, `apagar_${new Date().toISOString().slice(0,10)}.csv`, [
+              {key:"vencimento",label:"Vencimento",type:"date"},{key:"descricao",label:"Descrição"},
+              {key:"obra",label:"Obra"},{key:"fornecedor",label:"Fornecedor"},{key:"categoria",label:"Categoria"},
+              {key:"subcategoria",label:"Subcategoria"},{key:"natureza",label:"Natureza"},
+              {key:"pagador",label:"Pagador"},{key:"banco",label:"Banco"},{key:"valor",label:"Valor"},
+            ])} style={{...btnPrimary,background:"transparent",color:T.text2,border:`1px solid ${T.border2}`,fontSize:12}} title="Exportar CSV">⬇ CSV</button>
             <button onClick={()=>openModal("apagar_new")} style={{...btnPrimary,background:T.danger}}>+ Nova Conta a Pagar</button>
           </div>
           <div style={{display:"flex",flexDirection:"column",gap:10}}>
@@ -1449,18 +1530,21 @@ export default function App() {
               onSave={async d=>{
                 addFornecedor(d.fornecedor);
                 if (custoEditando) {
-                  await sbFetch("custos", { method:"PATCH", id:custoEditando.id, body:{data:d.data,obra:d.obra,banco:d.banco,fornecedor:d.fornecedor,categoria:d.categoria,subcategoria:d.subcategoria,tipo:d.tipo,natureza:d.natureza,valor:d.valor,obs:d.obs,pagador:d.pagador} });
-                  setCustos(prev=>prev.map(c=>c.id===custoEditando.id?{...c,...d}:c));
+                  const res = await sbFetch("custos", { method:"PATCH", id:custoEditando.id, body:{data:d.data,obra:d.obra,banco:d.banco,fornecedor:d.fornecedor,categoria:d.categoria,subcategoria:d.subcategoria,tipo:d.tipo,natureza:d.natureza,valor:d.valor,obs:d.obs,pagador:d.pagador} });
+                  if (res !== null) { setCustos(prev=>prev.map(c=>c.id===custoEditando.id?{...c,...d}:c)); showToast("Lançamento atualizado com sucesso.", "success"); }
+                  else showToast("Erro ao atualizar lançamento.", "error");
                 } else {
                   const res = await sbFetch("custos", { method:"POST", body:{data:d.data,obra:d.obra,banco:d.banco,fornecedor:d.fornecedor,categoria:d.categoria,subcategoria:d.subcategoria,tipo:d.tipo,natureza:d.natureza,valor:d.valor,obs:d.obs,pagador:d.pagador} });
-                  if(res?.[0]) setCustos(prev=>[...prev, mapCusto(res[0])]);
+                  if(res?.[0]) { setCustos(prev=>[...prev, mapCusto(res[0])]); showToast("Custo lançado com sucesso.", "success"); }
+                  else showToast("Erro ao salvar custo. Tente novamente.", "error");
                 }
                 closeModal();
               }}/>}
             {modal==="receita" && <ModalReceita T={T} obras={obras} bancos={bancos} inputStyle={inputStyle} labelStyle={labelStyle} btnPrimary={btnPrimary} onClose={closeModal}
               onSave={async d=>{
                 const res = await sbFetch("receitas", { method:"POST", body:{data:d.data,obra:d.obra,banco:d.banco,medicao:d.medicao,valor:d.valor,obs:d.obs} });
-                if(res?.[0]) setReceitas(prev=>[...prev, mapReceita(res[0])]);
+                if(res?.[0]) { setReceitas(prev=>[...prev, mapReceita(res[0])]); showToast("Receita registrada com sucesso.", "success"); }
+                else showToast("Erro ao registrar receita.", "error");
                 closeModal();
               }}/>}
             {modal==="apagar_new" && <ModalAPagar T={T} obras={obras} bancos={bancos} cats={cats}
@@ -1469,24 +1553,28 @@ export default function App() {
               onSave={async d=>{
                 addFornecedor(d.fornecedor);
                 const res = await sbFetch("apagar", { method:"POST", body:{obra:d.obra,descricao:d.descricao,categoria:d.categoria,subcategoria:d.subcategoria,tipo:d.tipo,natureza:d.natureza,valor:d.valor,vencimento:d.vencimento,fornecedor:d.fornecedor,pagador:d.pagador,banco:d.banco,pago:false} });
-                if(res?.[0]) setApagar(prev=>[...prev, mapApagar(res[0])]);
+                if(res?.[0]) { setApagar(prev=>[...prev, mapApagar(res[0])]); showToast("Conta a pagar cadastrada.", "success"); }
+                else showToast("Erro ao salvar conta a pagar.", "error");
                 closeModal();
               }}/>}
             {(modal==="obra_new"||modal==="obra_edit") && <ModalObra T={T} initial={modalData} inputStyle={inputStyle} labelStyle={labelStyle} btnPrimary={btnPrimary} onClose={closeModal}
               onSave={async d=>{
                 if(modal==="obra_new"){
                   const res = await sbFetch("obras", { method:"POST", body:{nome:d.nome,inicio:d.inicio,fim:d.fim,contrato:d.contrato,status:d.status} });
-                  if(res?.[0]) setObras(prev=>[...prev, mapObra(res[0])]);
+                  if(res?.[0]) { setObras(prev=>[...prev, mapObra(res[0])]); showToast(`Obra "${d.nome}" cadastrada.`, "success"); }
+                  else showToast("Erro ao cadastrar obra.", "error");
                 } else {
-                  await sbFetch("obras", { method:"PATCH", id:modalData.id, body:{nome:d.nome,inicio:d.inicio,fim:d.fim,contrato:d.contrato,status:d.status} });
-                  setObras(prev=>prev.map(o=>o.id===modalData.id?{...o,...d}:o));
+                  const res = await sbFetch("obras", { method:"PATCH", id:modalData.id, body:{nome:d.nome,inicio:d.inicio,fim:d.fim,contrato:d.contrato,status:d.status} });
+                  if (res !== null) { setObras(prev=>prev.map(o=>o.id===modalData.id?{...o,...d}:o)); showToast("Obra atualizada.", "success"); }
+                  else showToast("Erro ao atualizar obra.", "error");
                 }
                 closeModal();
               }}/>}
             {modal==="orcamento_new" && <ModalOrcamento T={T} obras={obras} cats={cats} inputStyle={inputStyle} labelStyle={labelStyle} btnPrimary={btnPrimary} onClose={closeModal}
               onSave={async d=>{
                 const res = await sbFetch("orcamento", { method:"POST", body:{obra:d.obra,categoria:d.categoria,subcategoria:d.subcategoria,tipo:d.tipo,natureza:d.natureza,valor_orcado:d.valorOrcado} });
-                if(res?.[0]) setOrcamento(prev=>[...prev, mapOrcamento(res[0])]);
+                if(res?.[0]) { setOrcamento(prev=>[...prev, mapOrcamento(res[0])]); showToast("Linha de orçamento adicionada.", "success"); }
+                else showToast("Erro ao salvar orçamento.", "error");
                 closeModal();
               }}/>}
           </div>
@@ -1588,6 +1676,7 @@ export default function App() {
         </button>
       </div>
     </div>
+    <ToastContainer toasts={toasts} onDismiss={dismissToast} T={T} />
     </ThemeCtx.Provider>
   );
 }
@@ -1935,7 +2024,7 @@ function CustosAba({ T, dark, custos, allCustos, setCustos, obras, bancos, cats,
   selectedIds, toggleSelect, selectAll, clearSelection, setSelectedIds,
   bulkField, setBulkField, bulkValue, setBulkValue,
   bulkSub, setBulkSub, applyBulkEdit, applyBulkDelete,
-  obrasNames, catsNames, openModal,
+  obrasNames, catsNames, openModal, showToast,
   surface, inputStyle, labelStyle, btnPrimary, btnGhost }) {
 
   const [collapsedGroups, setCollapsedGroups] = useState(new Set());
@@ -2082,7 +2171,7 @@ function CustosAba({ T, dark, custos, allCustos, setCustos, obras, bancos, cats,
               onMouseEnter={e=>{e.currentTarget.style.background=T.accent+"15";e.currentTarget.style.color=T.accent;}}
               onMouseLeave={e=>{e.currentTarget.style.background="transparent";e.currentTarget.style.color=T.text3;}}
             >✏</button>
-            <button onClick={async()=>{if(window.confirm(`Excluir "${d.obs||d.categoria}" (${fmt(d.valor)})?`)){await sbFetch("custos",{method:"DELETE",id:d.id});setCustos(prev=>prev.filter(c=>c.id!==d.id));}}} title="Excluir"
+            <button onClick={async()=>{if(window.confirm(`Excluir "${d.obs||d.categoria}" (${fmt(d.valor)})?`)){const ok=await sbFetch("custos",{method:"DELETE",id:d.id});if(ok!==null){setCustos(prev=>prev.filter(c=>c.id!==d.id));showToast?.("Lançamento excluído.","success");}else showToast?.("Erro ao excluir. Tente novamente.","error");}}} title="Excluir"
               style={{background:"transparent",border:`1px solid ${T.border2}`,color:T.text3,borderRadius:5,padding:"3px 7px",cursor:"pointer",fontSize:10,fontFamily:T.fontFamily||"inherit",transition:"all 0.12s",lineHeight:1}}
               onMouseEnter={e=>{e.currentTarget.style.background=T.danger+"15";e.currentTarget.style.color=T.danger;}}
               onMouseLeave={e=>{e.currentTarget.style.background="transparent";e.currentTarget.style.color=T.text3;}}
@@ -2129,6 +2218,14 @@ function CustosAba({ T, dark, custos, allCustos, setCustos, obras, bancos, cats,
           <button onClick={()=>setShowFilters(!showFilters)} style={{...btnGhost,fontSize:11,padding:"7px 14px",display:"flex",alignItems:"center",gap:5}}>
             <span style={{fontSize:13}}>⚙</span> Filtros {showFilters?"▲":"▼"}
             {activeFiltersCount>0 && <span style={{background:T.accent,color:"#fff",borderRadius:999,fontSize:9,padding:"1px 5px",fontWeight:700,marginLeft:2}}>{activeFiltersCount}</span>}
+          </button>
+          <button onClick={()=>exportCSV(sortedRows, `custos_${new Date().toISOString().slice(0,10)}.csv`, [
+            {key:"data",label:"Data",type:"date"},{key:"obra",label:"Obra"},{key:"fornecedor",label:"Fornecedor"},
+            {key:"categoria",label:"Categoria"},{key:"subcategoria",label:"Subcategoria"},{key:"tipo",label:"Tipo"},
+            {key:"natureza",label:"Natureza"},{key:"pagador",label:"Pagador"},{key:"banco",label:"Banco"},
+            {key:"valor",label:"Valor"},{key:"obs",label:"Observação"},
+          ])} style={{...btnGhost,fontSize:11,padding:"7px 14px",display:"flex",alignItems:"center",gap:5}} title="Exportar dados filtrados como CSV">
+            ⬇ CSV
           </button>
           <button onClick={()=>openModal("custo")} style={{...btnPrimary,padding:"7px 18px",fontSize:12}}>+ Novo Custo</button>
         </div>
@@ -3238,7 +3335,13 @@ function DashboardFinanceiro({ T, receitas, setReceitas, custos, saldoBancos,
             {filtroMes   !== "TODOS" && <span style={{ fontSize: 11, color: T.text3, fontWeight: 400, marginLeft: 6 }}>— {filtroMes}</span>}
             {filtroBanco !== "TODOS" && <span style={{ fontSize: 11, color: T.info,  fontWeight: 600, marginLeft: 6 }}>· {filtroBanco}</span>}
           </span>
-          <span style={{ fontSize: 12, color: T.success, fontWeight: 700 }}>{receitasFilt.length} registros · {fmt(totalEntFilt)}</span>
+          <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+            <span style={{ fontSize: 12, color: T.success, fontWeight: 700 }}>{receitasFilt.length} registros · {fmt(totalEntFilt)}</span>
+            <button onClick={() => exportCSV(receitasFilt, `receitas_${new Date().toISOString().slice(0,10)}.csv`, [
+              {key:"data",label:"Data",type:"date"},{key:"obra",label:"Obra"},{key:"banco",label:"Banco"},
+              {key:"medicao",label:"Nº Medição"},{key:"valor",label:"Valor"},{key:"obs",label:"Observações"},
+            ])} style={{ background:"transparent", border:`1px solid ${T.border2}`, color:T.text3, borderRadius:6, padding:"4px 10px", cursor:"pointer", fontSize:11, fontFamily:T.fontFamily||"inherit" }} title="Exportar CSV">⬇ CSV</button>
+          </div>
         </div>
         <div style={{ overflowX: "auto" }}>
           <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 11 }}>
@@ -4291,8 +4394,22 @@ function ModalCusto({T,obras,bancos,cats,custos=[],inputStyle,labelStyle,btnPrim
     ? {...initial}
     : {obra:"",data:todayStr(),banco:"",fornecedor:"",categoria:"",subcategoria:"",tipo:"Direto",natureza:"Mão de Obra",valor:0,obs:"",pagador:"RBIM"}
   );
-  const u = k => v => setF(p=>({...p,[k]:v}));
-  const si = {...inputStyle};
+  const [erros, setErros] = useState({});
+  const u = k => v => { setF(p=>({...p,[k]:v})); setErros(e=>({...e,[k]:""})); };
+  const si = k => ({...inputStyle, ...(erros[k] ? {borderColor:T.danger} : {})});
+  const ErrMsg = ({campo}) => erros[campo] ? <span style={{color:T.danger,fontSize:10,marginTop:2,display:"block"}}>{erros[campo]}</span> : null;
+
+  const handleSave = () => {
+    const e = {};
+    if (!f.obra) e.obra = "Selecione uma obra.";
+    if (!f.valor || f.valor <= 0) e.valor = "Informe um valor maior que zero.";
+    if (!f.data) e.data = "Data obrigatória.";
+    if (!f.categoria) e.categoria = "Selecione uma categoria.";
+    if (!f.subcategoria) e.subcategoria = "Selecione uma subcategoria.";
+    if (Object.keys(e).length > 0) { setErros(e); return; }
+    onSave({...f});
+  };
+
   return (<>
     <MH title={isEdit ? "✏️ Editar Lançamento" : "💸 Lançar Custo"} onClose={onClose} T={T}/>
     {isEdit && (
@@ -4300,26 +4417,28 @@ function ModalCusto({T,obras,bancos,cats,custos=[],inputStyle,labelStyle,btnPrim
         ✏️ Modo edição — ID #{initial.id}
       </div>
     )}
-    <CurrencyInput label="Valor (R$)" required value={f.valor} onChange={v=>u("valor")(v)} inputStyle={inputStyle} labelStyle={labelStyle} T={T}/>
+    <CurrencyInput label="Valor (R$)" required value={f.valor} onChange={v=>u("valor")(v)} inputStyle={{...inputStyle,...(erros.valor?{borderColor:T.danger}:{})}} labelStyle={labelStyle} T={T}/>
+    <ErrMsg campo="valor"/>
     <G2>
-      <FR><label style={labelStyle}>Obra *</label><select value={f.obra} onChange={e=>u("obra")(e.target.value)} style={si}><option value="">-- selecione --</option>{obras.map(o=><option key={o.id||o.nome}>{o.nome}</option>)}</select></FR>
-      <FR><label style={labelStyle}>Data *</label><input type="date" value={f.data} onChange={e=>u("data")(e.target.value)} style={si}/></FR>
+      <FR><label style={labelStyle}>Obra *</label><select value={f.obra} onChange={e=>u("obra")(e.target.value)} style={si("obra")}><option value="">-- selecione --</option>{obras.map(o=><option key={o.id||o.nome}>{o.nome}</option>)}</select><ErrMsg campo="obra"/></FR>
+      <FR><label style={labelStyle}>Data *</label><input type="date" value={f.data} onChange={e=>u("data")(e.target.value)} style={si("data")}/><ErrMsg campo="data"/></FR>
     </G2>
-    <FR><label style={labelStyle}>Descrição / Observação</label><input type="text" value={f.obs||""} onChange={e=>u("obs")(e.target.value)} placeholder="Ex: COMPRA DE CIMENTO" style={si}/></FR>
+    <FR><label style={labelStyle}>Descrição / Observação</label><input type="text" value={f.obs||""} onChange={e=>u("obs")(e.target.value)} placeholder="Ex: COMPRA DE CIMENTO" style={si("obs")}/></FR>
     <CascadeSelector
       cats={cats} custos={custos}
       categoria={f.categoria} subcategoria={f.subcategoria}
       tipo={f.tipo} natureza={f.natureza}
-      onChange={({categoria,subcategoria,tipo,natureza})=>setF(p=>({...p,categoria,subcategoria,tipo,natureza}))}
+      onChange={({categoria,subcategoria,tipo,natureza})=>{setF(p=>({...p,categoria,subcategoria,tipo,natureza}));setErros(e=>({...e,categoria:"",subcategoria:""}));}}
       T={T}
     />
+    {erros.categoria && <span style={{color:T.danger,fontSize:10,marginTop:-6,marginBottom:6,display:"block"}}>{erros.categoria}</span>}
+    {erros.subcategoria && <span style={{color:T.danger,fontSize:10,marginTop:-6,marginBottom:6,display:"block"}}>{erros.subcategoria}</span>}
     <G2>
-      <FR><label style={labelStyle}>Pago por</label><select value={f.pagador} onChange={e=>u("pagador")(e.target.value)} style={si}>{["RBIM","JF"].map(x=><option key={x}>{x}</option>)}</select></FR>
-      <FR><label style={labelStyle}>Banco de Saída</label><select value={f.banco} onChange={e=>u("banco")(e.target.value)} style={si}><option value="">-- selecione --</option>{bancos.map(b=><option key={b.id||b.nome}>{b.nome}</option>)}</select></FR>
+      <FR><label style={labelStyle}>Pago por</label><select value={f.pagador} onChange={e=>u("pagador")(e.target.value)} style={si("pagador")}>{["RBIM","JF"].map(x=><option key={x}>{x}</option>)}</select></FR>
+      <FR><label style={labelStyle}>Banco de Saída</label><select value={f.banco} onChange={e=>u("banco")(e.target.value)} style={si("banco")}><option value="">-- selecione --</option>{bancos.map(b=><option key={b.id||b.nome}>{b.nome}</option>)}</select></FR>
     </G2>
-    <FornecedorInput value={f.fornecedor} onChange={v=>u("fornecedor")(v)} fornecedores={fornecedores} inputStyle={si} labelStyle={labelStyle} T={T}/>
-    <button onClick={()=>{if(!f.obra||!f.valor||!f.categoria||!f.subcategoria)return alert("Obra, categoria, subcategoria e valor obrigatórios.");onSave({...f});}}
-      style={{...btnPrimary,width:"100%",background:isEdit?T.info:undefined}}>
+    <FornecedorInput value={f.fornecedor} onChange={v=>u("fornecedor")(v)} fornecedores={fornecedores} inputStyle={si("fornecedor")} labelStyle={labelStyle} T={T}/>
+    <button onClick={handleSave} style={{...btnPrimary,width:"100%",background:isEdit?T.info:undefined}}>
       {isEdit ? "✓ Salvar Edição" : "✓ Salvar Lançamento"}
     </button>
   </>);
@@ -4328,21 +4447,34 @@ function ModalCusto({T,obras,bancos,cats,custos=[],inputStyle,labelStyle,btnPrim
 // ─── MODAL RECEITA ────────────────────────────────────────────────────────────
 function ModalReceita({T,obras,bancos,inputStyle,labelStyle,btnPrimary,onSave,onClose}) {
   const [f,setF] = useState({obra:"",data:todayStr(),banco:"",medicao:"",valor:0,obs:""});
-  const u = k => v => setF(p=>({...p,[k]:v}));
-  const si = {...inputStyle};
+  const [erros, setErros] = useState({});
+  const u = k => v => { setF(p=>({...p,[k]:v})); setErros(e=>({...e,[k]:""})); };
+  const si = k => ({...inputStyle,...(erros[k]?{borderColor:T.danger}:{})});
+  const ErrMsg = ({campo}) => erros[campo] ? <span style={{color:T.danger,fontSize:10,marginTop:2,display:"block"}}>{erros[campo]}</span> : null;
+
+  const handleSave = () => {
+    const e = {};
+    if (!f.obra) e.obra = "Selecione uma obra.";
+    if (!f.valor || f.valor <= 0) e.valor = "Informe um valor maior que zero.";
+    if (!f.data) e.data = "Data obrigatória.";
+    if (Object.keys(e).length > 0) { setErros(e); return; }
+    onSave({...f, valor:f.valor});
+  };
+
   return (<>
     <MH title="💚 Registrar Receita / Medição" onClose={onClose} T={T}/>
-    <CurrencyInput label="Valor Recebido (R$)" required value={f.valor} onChange={v=>u("valor")(v)} inputStyle={inputStyle} labelStyle={labelStyle} T={T}/>
+    <CurrencyInput label="Valor Recebido (R$)" required value={f.valor} onChange={v=>u("valor")(v)} inputStyle={{...inputStyle,...(erros.valor?{borderColor:T.danger}:{})}} labelStyle={labelStyle} T={T}/>
+    <ErrMsg campo="valor"/>
     <G2>
-      <FR><label style={labelStyle}>Obra *</label><select value={f.obra} onChange={e=>u("obra")(e.target.value)} style={si}><option value="">-- selecione --</option>{obras.map(o=><option key={o.id}>{o.nome}</option>)}</select></FR>
-      <FR><label style={labelStyle}>Data *</label><input type="date" value={f.data} onChange={e=>u("data")(e.target.value)} style={si}/></FR>
+      <FR><label style={labelStyle}>Obra *</label><select value={f.obra} onChange={e=>u("obra")(e.target.value)} style={si("obra")}><option value="">-- selecione --</option>{obras.map(o=><option key={o.id}>{o.nome}</option>)}</select><ErrMsg campo="obra"/></FR>
+      <FR><label style={labelStyle}>Data *</label><input type="date" value={f.data} onChange={e=>u("data")(e.target.value)} style={si("data")}/><ErrMsg campo="data"/></FR>
     </G2>
     <G2>
-      <FR><label style={labelStyle}>Banco de Entrada</label><select value={f.banco} onChange={e=>u("banco")(e.target.value)} style={si}><option value="">-- selecione --</option>{bancos.map(b=><option key={b.id}>{b.nome}</option>)}</select></FR>
-      <FR><label style={labelStyle}>Nº da Medição</label><input value={f.medicao} onChange={e=>u("medicao")(e.target.value)} placeholder="Ex: 01" style={si}/></FR>
+      <FR><label style={labelStyle}>Banco de Entrada</label><select value={f.banco} onChange={e=>u("banco")(e.target.value)} style={si("banco")}><option value="">-- selecione --</option>{bancos.map(b=><option key={b.id}>{b.nome}</option>)}</select></FR>
+      <FR><label style={labelStyle}>Nº da Medição</label><input value={f.medicao} onChange={e=>u("medicao")(e.target.value)} placeholder="Ex: 01" style={si("medicao")}/></FR>
     </G2>
-    <FR><label style={labelStyle}>Observações</label><input value={f.obs} onChange={e=>u("obs")(e.target.value)} placeholder="Referência..." style={si}/></FR>
-    <button onClick={()=>{if(!f.obra||!f.valor)return alert("Obra e valor obrigatórios.");onSave({...f,valor:f.valor});}} style={{...btnPrimary,width:"100%",background:T.success}}>✓ Registrar Recebimento</button>
+    <FR><label style={labelStyle}>Observações</label><input value={f.obs} onChange={e=>u("obs")(e.target.value)} placeholder="Referência..." style={si("obs")}/></FR>
+    <button onClick={handleSave} style={{...btnPrimary,width:"100%",background:T.success}}>✓ Registrar Recebimento</button>
   </>);
 }
 
@@ -4358,32 +4490,35 @@ function ModalAPagar({T,obras,bancos,cats,inputStyle,labelStyle,btnPrimary,onSav
     // parcelaAtual: 1 — incrementado a cada geração
     custoFixo: false, diaVencimento: "", totalParcelas: "",
   });
-  const u = k => v => setF(p=>({...p,[k]:v}));
+  const [erros, setErros] = useState({});
+  const u = k => v => { setF(p=>({...p,[k]:v})); setErros(e=>({...e,[k]:""})); };
   const subs = f.categoria ? (cats.find(c=>c.nome===f.categoria)?.subs||[]) : [];
-  const si = {...inputStyle};
+  const si = k => ({...inputStyle,...(erros[k]?{borderColor:T.danger}:{})});
+  const ErrMsg = ({campo}) => erros[campo] ? <span style={{color:T.danger,fontSize:10,marginTop:2,display:"block"}}>{erros[campo]}</span> : null;
   const SWITCH_STYLE = {
     position:"relative",display:"inline-block",width:40,height:22,flexShrink:0,cursor:"pointer"
   };
   return (<>
     <MH title="⏰ Nova Conta a Pagar" onClose={onClose} T={T}/>
-    <CurrencyInput label="Valor (R$)" required value={f.valor} onChange={v=>u("valor")(v)} inputStyle={inputStyle} labelStyle={labelStyle} T={T}/>
+    <CurrencyInput label="Valor (R$)" required value={f.valor} onChange={v=>u("valor")(v)} inputStyle={{...inputStyle,...(erros.valor?{borderColor:T.danger}:{})}} labelStyle={labelStyle} T={T}/>
+    <ErrMsg campo="valor"/>
     <G2>
-      <FR><label style={labelStyle}>Obra *</label><select value={f.obra} onChange={e=>u("obra")(e.target.value)} style={si}><option value="">-- selecione --</option>{obras.map(o=><option key={o.id}>{o.nome}</option>)}</select></FR>
-      <FR><label style={labelStyle}>Vencimento *</label><input type="date" value={f.vencimento} onChange={e=>u("vencimento")(e.target.value)} style={si}/></FR>
+      <FR><label style={labelStyle}>Obra *</label><select value={f.obra} onChange={e=>u("obra")(e.target.value)} style={si("obra")}><option value="">-- selecione --</option>{obras.map(o=><option key={o.id}>{o.nome}</option>)}</select><ErrMsg campo="obra"/></FR>
+      <FR><label style={labelStyle}>Vencimento *</label><input type="date" value={f.vencimento} onChange={e=>u("vencimento")(e.target.value)} style={si("vencimento")}/><ErrMsg campo="vencimento"/></FR>
     </G2>
-    <FR><label style={labelStyle}>Descrição *</label><input value={f.descricao} onChange={e=>u("descricao")(e.target.value)} placeholder="Ex: PARCELA MATERIAL" style={si}/></FR>
+    <FR><label style={labelStyle}>Descrição *</label><input value={f.descricao} onChange={e=>u("descricao")(e.target.value)} placeholder="Ex: PARCELA MATERIAL" style={si("descricao")}/><ErrMsg campo="descricao"/></FR>
     <CascadeSelector
       cats={cats} custos={[]}
       categoria={f.categoria} subcategoria={f.subcategoria}
       tipo={f.tipo} natureza={f.natureza}
-      onChange={({categoria,subcategoria,tipo,natureza})=>setF(p=>({...p,categoria,subcategoria,tipo,natureza}))}
+      onChange={({categoria,subcategoria,tipo,natureza})=>{setF(p=>({...p,categoria,subcategoria,tipo,natureza}));setErros(e=>({...e,categoria:"",subcategoria:""}));}}
       T={T}
     />
     <G2>
-      <FR><label style={labelStyle}>Banco</label><select value={f.banco} onChange={e=>u("banco")(e.target.value)} style={si}><option value="">-- selecione --</option>{bancos.map(b=><option key={b.id}>{b.nome}</option>)}</select></FR>
-      <FR><label style={labelStyle}>Pago por</label><select value={f.pagador} onChange={e=>u("pagador")(e.target.value)} style={si}>{["RBIM","JF"].map(x=><option key={x}>{x}</option>)}</select></FR>
+      <FR><label style={labelStyle}>Banco</label><select value={f.banco} onChange={e=>u("banco")(e.target.value)} style={si("banco")}><option value="">-- selecione --</option>{bancos.map(b=><option key={b.id}>{b.nome}</option>)}</select></FR>
+      <FR><label style={labelStyle}>Pago por</label><select value={f.pagador} onChange={e=>u("pagador")(e.target.value)} style={si("pagador")}>{["RBIM","JF"].map(x=><option key={x}>{x}</option>)}</select></FR>
     </G2>
-    <FornecedorInput value={f.fornecedor} onChange={v=>u("fornecedor")(v)} fornecedores={fornecedores} inputStyle={si} labelStyle={labelStyle} T={T}/>
+    <FornecedorInput value={f.fornecedor} onChange={v=>u("fornecedor")(v)} fornecedores={fornecedores} inputStyle={si("fornecedor")} labelStyle={labelStyle} T={T}/>
 
     {/* ── Custo Fixo / Recorrente ── */}
     <div style={{background:f.custoFixo?T.info+"18":T.surface2,border:`1px solid ${f.custoFixo?T.info+"55":T.border}`,borderRadius:10,padding:"12px 14px",marginBottom:14,transition:"all 0.2s"}}>
@@ -4432,10 +4567,15 @@ function ModalAPagar({T,obras,bancos,cats,inputStyle,labelStyle,btnPrimary,onSav
       )}
     </div>
 
-    <button onClick={()=>{if(!f.obra||!f.descricao||!f.valor||!f.vencimento)return alert("Preencha os campos obrigatórios.");
+    <button onClick={()=>{
+      const e = {};
+      if (!f.obra) e.obra = "Selecione uma obra.";
+      if (!f.valor || f.valor <= 0) e.valor = "Informe um valor maior que zero.";
+      if (!f.vencimento) e.vencimento = "Vencimento obrigatório.";
+      if (!f.descricao) e.descricao = "Descrição obrigatória.";
+      if (Object.keys(e).length > 0) { setErros(e); return; }
       onSave({
-        ...f,valor:f.valor,
-        // payload normalizado para recorrência
+        ...f, valor:f.valor,
         custoFixo: f.custoFixo,
         diaVencimento: f.custoFixo ? (parseInt(f.diaVencimento)||null) : null,
         totalParcelas: f.custoFixo ? (parseInt(f.totalParcelas)||null) : null,
