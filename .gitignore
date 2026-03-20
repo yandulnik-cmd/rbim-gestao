@@ -3,3 +3,25 @@ dist/
 .env
 .env.local
 *.local
+
+# Binary and Large Files
+*.exe
+*.pdf
+*.zip
+*.rar
+*.7z
+
+# Images (if not used as assets)
+*.png
+*.jpg
+*.jpeg
+*.gif
+*.svg
+*.ico
+
+# Data and Temp Files
+*.csv
+*.xlsx
+*.log
+.DS_Store
+Thumbs.db
